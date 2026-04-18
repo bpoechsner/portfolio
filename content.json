@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "name": "Brandon Oechsner",
+    "title": "Electrical Engineer · Maker · Robotics",
+    "university": "Midwestern State University",
+    "location": "Wichita Falls, TX",
+    "gpa": "3.8",
+    "email": "your@email.com",
+    "linkedin": "https://linkedin.com/in/your-handle",
+    "github": "https://github.com/your-handle",
+    "resume": "/files/resume.pdf"
+  },
+  "hero": {
+    "headline": "Brandon Oechsner",
+    "subheadline": "Electrical Engineer · Maker · Robotics",
+    "description": "EE student at Midwestern State University building at the intersection of embedded systems, automation, and precision fabrication. Currently interning at Pratt & Whitney and United Regional Health Care System.",
+    "tags": [
+      "Arduino",
+      "3D Printing · Bambu P1S",
+      "CAD · SolidWorks/Onshape",
+      "Coding · C++/MATLAB/Python",
+      "",
+      ""
+    ]
+  },
+  "experience": [
+    {
+      "id": "pw",
+      "company": "Pratt & Whitney",
+      "role": "Engineering Intern",
+      "period": "Summer 2025",
+      "description": "Supporting aerospace engineering operations at one of the world's leading aircraft engine manufacturers. Hands-on exposure to precision manufacturing and engineering systems.",
+      "logo": ""
+    },
+    {
+      "id": "urhs",
+      "company": "United Regional Health Care System",
+      "role": "RPA Automation Engineer Intern",
+      "period": "Summer 2025",
+      "description": "Developing robotic process automation solutions for healthcare system workflows. Designing and deploying automated processes to improve operational efficiency.",
+      "logo": ""
+    },
+    {
+      "id": "msu",
+      "company": "Midwestern State University",
+      "role": "B.S. Electrical Engineering",
+      "period": "2022 – Present · 3.8 GPA",
+      "description": "Coursework spanning DSP, embedded systems, circuit analysis, and controls. Hands-on lab work including FIR/IIR filter implementation on TMS320C6748 DSP hardware.",
+      "logo": ""
+    }
+  ],
+  "projects": [
+    {
+      "id": "robotic-arm",
+      "title": "Arduino Robotic Arm",
+      "category": "Robotics · Embedded",
+      "description": "Multi-axis robotic arm built from scratch using an Arduino UNO, MG996R high-torque servos, and fully custom 3D-printed structural components designed in Onshape for the Bambu Lab P1S printer.",
+      "status": "In Progress",
+      "image": "",
+      "links": {
+        "github": "",
+        "demo": "",
+        "files": ""
+      },
+      "tech": [
+        "Arduino UNO",
+        "MG996R Servos",
+        "Onshape CAD",
+        "3D Printing",
+        "C++"
+      ]
+    },
+    {
+      "id": "dsp-filters",
+      "title": "FIR / IIR Filter Implementation",
+      "category": "DSP · Signal Processing",
+      "description": "Designed and deployed FIR and IIR digital filters in MATLAB and on a TMS320C6748 DSP board via Code Composer Studio. Applications include echo generation, audio signal shaping, and filter frequency analysis.",
+      "status": "Complete",
+      "image": "",
+      "links": {
+        "github": "",
+        "demo": "",
+        "files": ""
+      },
+      "tech": [
+        "MATLAB",
+        "TMS320C6748",
+        "Code Composer Studio",
+        "FIR / IIR"
+      ]
+    },
+    {
+      "id": "ring-cad",
+      "title": "Marquise Diamond Engagement Ring",
+      "category": "CAD · Jewelry Design",
+      "description": "Parametric engagement ring design in Onshape featuring a custom marquise diamond setting with a flower petal prong aesthetic. Constructed using loft-based prong geometry with guide curves.",
+      "status": "Complete",
+      "image": "",
+      "links": {
+        "github": "",
+        "demo": "",
+        "files": ""
+      },
+      "tech": [
+        "Onshape",
+        "Parametric CAD",
+        "Loft / Sweep",
+        "3D Printing"
+      ]
+    }
+  ],
+  "models": {
+    "description": "CAD models and printable STL files from my projects. Designed in Onshape, sliced for the Bambu Lab P1S. Free to use for personal builds.",
+    "printables_url": "",
+    "thangs_url": "",
+    "files": [
+      {
+        "id": "arm-base",
+        "name": "Arm Base",
+        "project": "Robotic Arm",
+        "version": "v1.2",
+        "format": "STL",
+        "download_url": ""
+      },
+      {
+        "id": "shoulder-joint",
+        "name": "Shoulder Joint",
+        "project": "Robotic Arm",
+        "version": "v1.2",
+        "format": "STL",
+        "download_url": ""
+      },
+      {
+        "id": "elbow-link",
+        "name": "Elbow Link",
+        "project": "Robotic Arm",
+        "version": "v1.2",
+        "format": "STL",
+        "download_url": ""
+      },
+      {
+        "id": "servo-horn",
+        "name": "Servo Horn Adapter",
+        "project": "Robotic Arm",
+        "version": "v1.0",
+        "format": "STL",
+        "download_url": ""
+      },
+      {
+        "id": "gripper",
+        "name": "Gripper / End Effector",
+        "project": "Robotic Arm",
+        "version": "v1.1",
+        "format": "STL",
+        "download_url": ""
+      }
+    ]
+  },
+  "skills": [
+    {
+      "category": "Programming",
+      "items": [
+        "C++ (Proficient)",
+        "MATLAB (Proficient)",
+        "Python (Working Knowledge)",
+        "Arduino / Embedded C"
+      ]
+    },
+    {
+      "category": "Hardware",
+      "items": [
+        "Arduino UNO / Nano",
+        "TMS320C6748 DSP Board",
+        "Servo & Motor Control",
+        "Electrical Apprenticeship Background"
+      ]
+    },
+    {
+      "category": "Design & Fabrication",
+      "items": [
+        "Onshape (Parametric CAD)",
+        "Bambu Lab P1S",
+        "FDM / PLA / PETG",
+        "Design for Manufacture"
+      ]
+    },
+    {
+      "category": "Specializations",
+      "items": [
+        "Digital Signal Processing",
+        "FIR / IIR Filter Design",
+        "Robotic Process Automation",
+        "Pneumatic Systems"
+      ]
+    }
+  ],
+  "contact": {
+    "headline": "Let's Build Something.",
+    "subtext": "Open to full-time opportunities after graduation, collaborations on hardware projects, or just talking shop about embedded systems and fabrication."
+  }
+}

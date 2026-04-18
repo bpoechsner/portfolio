@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #0a0a0a;
+    color: #f0f0f0;
+  }
+
+  /* Amber-tinted scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #292929;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #f59e0b;
+  }
+}
+
+@layer utilities {
+  /* Subtle amber grid overlay — used on hero and card backgrounds */
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(245, 158, 11, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245, 158, 11, 0.045) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Dot-matrix pattern */
+  .bg-dot {
+    background-image: radial-gradient(rgba(245, 158, 11, 0.1) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Amber gradient text */
+  .text-gradient-amber {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 60%, #fcd34d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Soft amber glow on cards */
+  .card-glow:hover {
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35), 0 4px 32px rgba(245, 158, 11, 0.08);
+  }
+}
+
+/* ── Inline edit mode ──────────────────────────────────────────────────── */
+
+/* Dashed amber underline on every editable field so the owner can see
+   what is clickable. Overrides nothing on normal visitors. */
+.edit-mode [data-editable] {
+  cursor: text;
+  border-bottom: 1px dashed rgba(245, 158, 11, 0.4);
+  outline: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.edit-mode [data-editable]:hover {
+  border-bottom-color: rgba(245, 158, 11, 0.65);
+}
+
+/* Solid amber underline + subtle tint while the field is focused */
+.edit-mode [data-editable]:focus {
+  border-bottom: 1px solid rgba(245, 158, 11, 0.8);
+  background: rgba(245, 158, 11, 0.06);
+  outline: none;
+}
+
+/* Prevent gradient-text from hiding the cursor inside the hero name */
+.edit-mode .text-gradient-amber[data-editable] {
+  -webkit-text-fill-color: unset;
+  color: #fbbf24;
+}
