@@ -183,6 +183,19 @@ export default function EditToolbar() {
     }
   }, [mode]);
 
+  // E key shortcut to open edit mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (mode !== "idle") return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+      if ((e.target as HTMLElement).isContentEditable) return;
+      if (e.key === "e" || e.key === "E") setMode("auth");
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [mode]);
+
   const applyTheme = (preset: string) => {
     setTheme(preset);
     document.documentElement.setAttribute("data-theme", preset);

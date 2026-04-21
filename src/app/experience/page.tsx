@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import content from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
+import FadeIn from "@/components/FadeIn";
 
 export const metadata: Metadata = {
   title: "Experience",
@@ -33,50 +34,52 @@ export default function ExperiencePage() {
         />
 
         <div className="space-y-8">
-          {professional.map((job) => {
+          {professional.map((job, i) => {
             const idx = experience.findIndex((e) => e.id === job.id);
             return (
-              <div key={job.id} className="md:pl-12 relative">
-                <div className="absolute hidden md:flex items-center justify-center w-[23px] h-[23px] border border-accent-500 bg-[#0a0a0a] top-1.5 left-0">
-                  <div className="w-[7px] h-[7px] bg-accent-500" />
-                </div>
-
-                <div className="border border-neutral-800 bg-neutral-900/30 p-6 hover:border-neutral-700 card-glow transition-all">
-                  <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-                    <div>
-                      <h2
-                        className="font-mono text-lg font-bold text-neutral-100"
-                        data-editable="true"
-                        data-path={`experience.${idx}.role`}
-                      >
-                        {job.role}
-                      </h2>
-                      <p
-                        className="font-mono text-sm text-accent-400/70 mt-0.5"
-                        data-editable="true"
-                        data-path={`experience.${idx}.company`}
-                      >
-                        {job.company}
-                      </p>
-                    </div>
-                    <span
-                      className="font-mono text-xs text-neutral-500 shrink-0"
-                      data-editable="true"
-                      data-path={`experience.${idx}.period`}
-                    >
-                      {job.period}
-                    </span>
+              <FadeIn key={job.id} delay={i * 100}>
+                <div className="md:pl-12 relative">
+                  <div className="absolute hidden md:flex items-center justify-center w-[23px] h-[23px] border border-accent-500 bg-[#0a0a0a] top-1.5 left-0">
+                    <div className="w-[7px] h-[7px] bg-accent-500" />
                   </div>
 
-                  <p
-                    className="text-neutral-400 text-sm leading-relaxed"
-                    data-editable="true"
-                    data-path={`experience.${idx}.description`}
-                  >
-                    {job.description}
-                  </p>
+                  <div className="border border-neutral-800 bg-neutral-900/30 p-6 hover:border-neutral-700 card-glow transition-all">
+                    <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+                      <div>
+                        <h2
+                          className="font-mono text-lg font-bold text-neutral-100"
+                          data-editable="true"
+                          data-path={`experience.${idx}.role`}
+                        >
+                          {job.role}
+                        </h2>
+                        <p
+                          className="font-mono text-sm text-accent-400/70 mt-0.5"
+                          data-editable="true"
+                          data-path={`experience.${idx}.company`}
+                        >
+                          {job.company}
+                        </p>
+                      </div>
+                      <span
+                        className="font-mono text-xs text-neutral-500 shrink-0"
+                        data-editable="true"
+                        data-path={`experience.${idx}.period`}
+                      >
+                        {job.period}
+                      </span>
+                    </div>
+
+                    <p
+                      className="text-neutral-400 text-sm leading-relaxed"
+                      data-editable="true"
+                      data-path={`experience.${idx}.description`}
+                    >
+                      {job.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </FadeIn>
             );
           })}
         </div>
@@ -87,40 +90,42 @@ export default function ExperiencePage() {
         <div className="pt-20 border-t border-neutral-900">
           <SectionHeader label="Academic" title="Education" />
 
-          <div className="border border-neutral-800 bg-neutral-900/30 p-6 card-glow transition-all">
-            <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-              <div>
-                <h2
-                  className="font-mono text-lg font-bold text-neutral-100"
+          <FadeIn>
+            <div className="border border-neutral-800 bg-neutral-900/30 p-6 card-glow transition-all">
+              <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+                <div>
+                  <h2
+                    className="font-mono text-lg font-bold text-neutral-100"
+                    data-editable="true"
+                    data-path={`experience.${academicIdx}.role`}
+                  >
+                    {academic.role}
+                  </h2>
+                  <p
+                    className="font-mono text-sm text-accent-400/70 mt-0.5"
+                    data-editable="true"
+                    data-path={`experience.${academicIdx}.company`}
+                  >
+                    {academic.company}
+                  </p>
+                </div>
+                <span
+                  className="font-mono text-xs text-neutral-500 shrink-0"
                   data-editable="true"
-                  data-path={`experience.${academicIdx}.role`}
+                  data-path={`experience.${academicIdx}.period`}
                 >
-                  {academic.role}
-                </h2>
-                <p
-                  className="font-mono text-sm text-accent-400/70 mt-0.5"
-                  data-editable="true"
-                  data-path={`experience.${academicIdx}.company`}
-                >
-                  {academic.company}
-                </p>
+                  {academic.period}
+                </span>
               </div>
-              <span
-                className="font-mono text-xs text-neutral-500 shrink-0"
+              <p
+                className="text-neutral-400 text-sm leading-relaxed"
                 data-editable="true"
-                data-path={`experience.${academicIdx}.period`}
+                data-path={`experience.${academicIdx}.description`}
               >
-                {academic.period}
-              </span>
+                {academic.description}
+              </p>
             </div>
-            <p
-              className="text-neutral-400 text-sm leading-relaxed"
-              data-editable="true"
-              data-path={`experience.${academicIdx}.description`}
-            >
-              {academic.description}
-            </p>
-          </div>
+          </FadeIn>
         </div>
       )}
     </div>

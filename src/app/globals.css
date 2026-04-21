@@ -109,6 +109,16 @@
   }
 }
 
+/* ── Edit-only elements (image URL fields, etc.) ──────────────────────── */
+
+.edit-only {
+  display: none;
+}
+
+.edit-mode .edit-only {
+  display: block;
+}
+
 /* ── Inline edit mode ──────────────────────────────────────────────────── */
 
 .edit-mode [data-editable] {
