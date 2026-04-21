@@ -16,6 +16,8 @@ export default function ContactPage() {
         label="Get In Touch"
         title={contact.headline}
         subtitle={contact.subtext}
+        titlePath="contact.headline"
+        subtitlePath="contact.subtext"
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
@@ -104,17 +106,6 @@ export default function ContactPage() {
               data-path="meta.location"
             >
               {meta.location}
-            </p>
-          </div>
-
-          {/* Availability blurb */}
-          <div className="border-l-2 border-amber-500 pl-4">
-            <p
-              className="font-mono text-xs text-neutral-500 leading-relaxed"
-              data-editable="true"
-              data-path="contact.subtext"
-            >
-              {contact.subtext}
             </p>
           </div>
         </div>

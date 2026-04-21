@@ -8,12 +8,18 @@ export const metadata: Metadata = {
 };
 
 export default function ProjectsPage() {
+  const { pages } = content;
+  const pg = pages.projects;
+
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-24">
       <SectionHeader
-        label="Work"
-        title="Projects"
-        subtitle="Hardware and software projects — embedded systems, DSP, and precision CAD."
+        label={pg.label}
+        title={pg.title}
+        subtitle={pg.subtitle}
+        labelPath="pages.projects.label"
+        titlePath="pages.projects.title"
+        subtitlePath="pages.projects.subtitle"
       />
       <ProjectsGrid projects={content.projects} />
     </div>

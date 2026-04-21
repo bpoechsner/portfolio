@@ -18,10 +18,10 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `${content.meta.name} | EE Portfolio`,
+    default: content.seo.title,
     template: `%s | ${content.meta.name}`,
   },
-  description: content.hero.description,
+  description: content.seo.description,
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-[#0a0a0a] text-neutral-100 font-sans antialiased">
-        <Navbar />
+        <Navbar logo={content.nav.logo} links={content.nav.links} />
         <main className="min-h-screen">{children}</main>
         <Footer />
         <EditToolbar />

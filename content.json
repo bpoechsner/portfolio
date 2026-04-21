@@ -10,10 +10,38 @@
     "github": "https://github.com/your-handle",
     "resume": "/files/resume.pdf"
   },
+  "seo": {
+    "title": "Brandon Oechsner | EE Portfolio",
+    "description": "EE student at Midwestern State University building at the intersection of embedded systems, automation, and precision fabrication."
+  },
+  "nav": {
+    "logo": "B.OECHSNER",
+    "links": [
+      { "href": "/", "label": "Home", "visible": true },
+      { "href": "/experience", "label": "Experience", "visible": true },
+      { "href": "/projects", "label": "Projects", "visible": true },
+      { "href": "/3d-files", "label": "3D Files", "visible": true },
+      { "href": "/skills", "label": "Skills", "visible": true },
+      { "href": "/contact", "label": "Contact", "visible": true }
+    ]
+  },
+  "footer": {
+    "logo": "B.OECHSNER",
+    "tagline": "Building at the intersection of hardware and code."
+  },
+  "socials": [
+    { "label": "LinkedIn", "url": "https://linkedin.com/in/your-handle" },
+    { "label": "GitHub", "url": "https://github.com/your-handle" },
+    { "label": "Resume", "url": "/files/resume.pdf" }
+  ],
   "hero": {
     "headline": "Brandon Oechsner",
     "subheadline": "Electrical Engineer · Maker · Robotics",
     "description": "EE student at Midwestern State University building at the intersection of embedded systems, automation, and precision fabrication. Currently interning at Pratt & Whitney and United Regional Health Care System.",
+    "availability": {
+      "visible": true,
+      "text": "Open to opportunities after graduation"
+    },
     "tags": [
       "Arduino",
       "3D Printing · Bambu P1S",
@@ -22,6 +50,27 @@
       "",
       ""
     ]
+  },
+  "pages": {
+    "experience": {
+      "label": "Background",
+      "title": "Experience",
+      "subtitle": "Internships and hands-on engineering roles."
+    },
+    "projects": {
+      "label": "Work",
+      "title": "Projects",
+      "subtitle": "Hardware and software projects — embedded systems, DSP, and precision CAD."
+    },
+    "files": {
+      "label": "CAD / Fabrication",
+      "title": "3D Files"
+    },
+    "skills": {
+      "label": "Capabilities",
+      "title": "Skills",
+      "subtitle": "Technical proficiencies across embedded systems, signal processing, CAD, and fabrication."
+    }
   },
   "experience": [
     {

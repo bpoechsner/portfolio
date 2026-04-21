@@ -4,16 +4,18 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/experience", label: "Experience" },
-  { href: "/projects", label: "Projects" },
-  { href: "/3d-files", label: "3D Files" },
-  { href: "/skills", label: "Skills" },
-  { href: "/contact", label: "Contact" },
-];
+interface NavLink {
+  href: string;
+  label: string;
+  visible: boolean;
+}
 
-export default function Navbar() {
+interface NavbarProps {
+  logo: string;
+  links: NavLink[];
+}
+
+export default function Navbar({ logo, links }: NavbarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -24,10 +26,11 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  const visibleLinks = links.filter((l) => l.visible);
 
   return (
     <nav
@@ -42,13 +45,15 @@ export default function Navbar() {
         <Link
           href="/"
           className="font-mono font-bold text-amber-400 tracking-[0.22em] text-sm hover:text-amber-300 transition-colors"
+          data-editable="true"
+          data-path="nav.logo"
         >
-          B.OECHSNER
+          {logo}
         </Link>
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => {
+          {visibleLinks.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
@@ -98,7 +103,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden bg-[#0d0d0d] border-b border-neutral-800 px-6 py-6 flex flex-col gap-5">
-          {navLinks.map((link) => (
+          {visibleLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}

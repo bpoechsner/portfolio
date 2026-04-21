@@ -28,6 +28,15 @@ export default function Home() {
           >
             {hero.subheadline}
           </span>
+          {hero.availability.visible && (
+            <span
+              className="font-mono text-[10px] text-green-400 border border-green-500/30 bg-green-500/5 px-2 py-0.5 tracking-wide"
+              data-editable="true"
+              data-path="hero.availability.text"
+            >
+              {hero.availability.text}
+            </span>
+          )}
         </div>
 
         {/* Headline */}

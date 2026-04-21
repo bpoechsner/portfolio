@@ -7,7 +7,8 @@ export const metadata: Metadata = {
 };
 
 export default function ExperiencePage() {
-  const { experience } = content;
+  const { experience, pages } = content;
+  const pg = pages.experience;
 
   // Separate academic entry (MSU) from professional entries
   const professional = experience.filter((e) => e.id !== "msu");
@@ -17,9 +18,12 @@ export default function ExperiencePage() {
   return (
     <div className="max-w-4xl mx-auto px-6 lg:px-8 pt-32 pb-24">
       <SectionHeader
-        label="Background"
-        title="Experience"
-        subtitle="Internships and hands-on engineering roles."
+        label={pg.label}
+        title={pg.title}
+        subtitle={pg.subtitle}
+        labelPath="pages.experience.label"
+        titlePath="pages.experience.title"
+        subtitlePath="pages.experience.subtitle"
       />
 
       {/* Professional timeline */}

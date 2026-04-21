@@ -7,14 +7,18 @@ export const metadata: Metadata = {
 };
 
 export default function SkillsPage() {
-  const { skills } = content;
+  const { skills, pages } = content;
+  const pg = pages.skills;
 
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-24">
       <SectionHeader
-        label="Capabilities"
-        title="Skills"
-        subtitle="Technical proficiencies across embedded systems, signal processing, CAD, and fabrication."
+        label={pg.label}
+        title={pg.title}
+        subtitle={pg.subtitle}
+        labelPath="pages.skills.label"
+        titlePath="pages.skills.title"
+        subtitlePath="pages.skills.subtitle"
       />
 
       {/* Category grid */}

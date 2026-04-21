@@ -7,14 +7,18 @@ export const metadata: Metadata = {
 };
 
 export default function ThreeDFilesPage() {
-  const { models } = content;
+  const { models, pages } = content;
+  const pg = pages.files;
 
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-24">
       <SectionHeader
-        label="CAD / Fabrication"
-        title="3D Files"
+        label={pg.label}
+        title={pg.title}
         subtitle={models.description}
+        labelPath="pages.files.label"
+        titlePath="pages.files.title"
+        subtitlePath="models.description"
       />
 
       {/* External gallery links */}
