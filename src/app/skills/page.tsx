@@ -29,7 +29,7 @@ export default function SkillsPage() {
               {group.category.toUpperCase()}
             </h2>
             <ul className="space-y-2.5">
-              {group.items.map((item, ii) => (
+              {group.items.filter((i) => i.trim()).map((item, ii) => (
                 <li key={item} className="flex items-start gap-2">
                   <span className="text-amber-500/60 mt-[3px] text-xs shrink-0">▸</span>
                   <span

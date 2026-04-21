@@ -51,7 +51,7 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
 
           {/* Tech chips */}
           <div className="flex flex-wrap gap-1.5 mb-5">
-            {project.tech.map((tag, k) => (
+            {project.tech.filter((t) => t.trim()).map((tag, k) => (
               <span
                 key={tag}
                 className="font-mono text-[10px] text-neutral-700 border border-neutral-800 px-2 py-0.5"

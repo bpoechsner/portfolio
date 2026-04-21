@@ -51,7 +51,7 @@ export default function Home() {
 
         {/* Tag chips */}
         <div className="flex flex-wrap gap-2 mb-12">
-          {hero.tags.map((tag, i) => (
+          {hero.tags.filter((t) => t.trim()).map((tag, i) => (
             <span
               key={tag}
               className="font-mono text-[11px] text-amber-400/70 border border-amber-500/20 bg-amber-500/5 px-3 py-1 tracking-wide"

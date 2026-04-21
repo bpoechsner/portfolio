@@ -5,6 +5,142 @@ import { usePathname } from "next/navigation";
 
 type Mode = "idle" | "auth" | "editing" | "saving" | "publishing";
 
+// ── Array controls injected into the DOM in edit mode ─────────────────────
+
+function injectArrayControls() {
+  // Group all array-item elements by their parent path
+  const groups = new Map<string, HTMLElement[]>();
+
+  document.querySelectorAll<HTMLElement>("[data-editable][data-path]").forEach((el) => {
+    const path = el.getAttribute("data-path")!;
+    const parts = path.split(".");
+    const last = parts[parts.length - 1];
+    if (/^\d+$/.test(last)) {
+      const parent = parts.slice(0, -1).join(".");
+      if (!groups.has(parent)) groups.set(parent, []);
+      groups.get(parent)!.push(el);
+    }
+  });
+
+  groups.forEach((els, parentPath) => {
+    els.forEach((el) => {
+      // Delete button — appears on hover/focus
+      const del = document.createElement("button");
+      del.dataset.editInjected = "true";
+      del.title = "Remove item";
+      del.textContent = "×";
+      del.style.cssText =
+        "display:none;margin-left:4px;padding:0 4px;font-size:9px;font-family:monospace;" +
+        "color:rgb(248,113,113);border:1px solid rgba(239,68,68,0.35);" +
+        "background:rgba(239,68,68,0.08);cursor:pointer;vertical-align:middle;line-height:1.4;";
+
+      del.onmousedown = (e) => {
+        e.preventDefault();
+        el.remove();
+        del.remove();
+      };
+
+      el.addEventListener("mouseenter", () => (del.style.display = "inline-block"));
+      el.addEventListener("mouseleave", () => {
+        if (document.activeElement !== el) del.style.display = "none";
+      });
+      el.addEventListener("focus", () => (del.style.display = "inline-block"));
+      el.addEventListener("blur", () => (del.style.display = "none"));
+
+      el.insertAdjacentElement("afterend", del);
+    });
+
+    // "+" add button after the last item in the group
+    const lastEl = els[els.length - 1];
+    const add = document.createElement("button");
+    add.dataset.editInjected = "true";
+    add.textContent = "+ add";
+    add.style.cssText =
+      "margin-left:6px;padding:1px 7px;font-size:9px;font-family:monospace;letter-spacing:.1em;" +
+      "color:rgb(251,191,36);border:1px dashed rgba(245,158,11,0.4);" +
+      "background:transparent;cursor:pointer;vertical-align:middle;line-height:1.4;";
+
+    add.onmousedown = (e) => {
+      e.preventDefault();
+      // Clone the last el's style/class, give it a new high index so it sorts last
+      const existingPaths = Array.from(
+        document.querySelectorAll<HTMLElement>(`[data-path^="${parentPath}."]`)
+      )
+        .map((n) => parseInt(n.getAttribute("data-path")!.split(".").pop()!))
+        .filter((n) => !isNaN(n));
+      const nextIdx = existingPaths.length ? Math.max(...existingPaths) + 1 : 0;
+
+      const newEl = document.createElement("span");
+      newEl.className = lastEl.className;
+      newEl.setAttribute("data-editable", "true");
+      newEl.setAttribute("data-path", `${parentPath}.${nextIdx}`);
+      newEl.contentEditable = "true";
+      newEl.textContent = "New item";
+
+      add.insertAdjacentElement("beforebegin", newEl);
+
+      // Inject delete button for the new item too
+      const newDel = document.createElement("button");
+      newDel.dataset.editInjected = "true";
+      newDel.title = "Remove item";
+      newDel.textContent = "×";
+      newDel.style.cssText =
+        "display:none;margin-left:4px;padding:0 4px;font-size:9px;font-family:monospace;" +
+        "color:rgb(248,113,113);border:1px solid rgba(239,68,68,0.35);" +
+        "background:rgba(239,68,68,0.08);cursor:pointer;vertical-align:middle;line-height:1.4;";
+      newDel.onmousedown = (e) => { e.preventDefault(); newEl.remove(); newDel.remove(); };
+      newEl.addEventListener("mouseenter", () => (newDel.style.display = "inline-block"));
+      newEl.addEventListener("mouseleave", () => { if (document.activeElement !== newEl) newDel.style.display = "none"; });
+      newEl.addEventListener("focus", () => (newDel.style.display = "inline-block"));
+      newEl.addEventListener("blur", () => (newDel.style.display = "none"));
+      newEl.insertAdjacentElement("afterend", newDel);
+
+      newEl.focus();
+      // Select all text for easy replacement
+      const range = document.createRange();
+      range.selectNodeContents(newEl);
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
+    };
+
+    lastEl.insertAdjacentElement("afterend", add);
+  });
+}
+
+function cleanupArrayControls() {
+  document.querySelectorAll("[data-edit-injected]").forEach((el) => el.remove());
+}
+
+// ── Collect edits from DOM ─────────────────────────────────────────────────
+
+function collectEdits(): { scalars: Record<string, string>; arrays: Record<string, string[]> } {
+  const scalars: Record<string, string> = {};
+  // Collect array items in DOM order, grouped by parent path
+  const arrayItems = new Map<string, string[]>();
+
+  document.querySelectorAll<HTMLElement>("[data-editable][data-path]").forEach((el) => {
+    const path = el.getAttribute("data-path")!;
+    const parts = path.split(".");
+    const last = parts[parts.length - 1];
+
+    if (/^\d+$/.test(last)) {
+      const parent = parts.slice(0, -1).join(".");
+      if (!arrayItems.has(parent)) arrayItems.set(parent, []);
+      const val = el.innerText.trim();
+      if (val) arrayItems.get(parent)!.push(val); // skip blank items
+    } else {
+      scalars[path] = el.innerText.trim();
+    }
+  });
+
+  const arrays: Record<string, string[]> = {};
+  arrayItems.forEach((vals, parent) => { arrays[parent] = vals; });
+
+  return { scalars, arrays };
+}
+
+// ── Component ──────────────────────────────────────────────────────────────
+
 export default function EditToolbar() {
   const [mode, setMode] = useState<Mode>("idle");
   const [password, setPassword] = useState("");
@@ -15,8 +151,6 @@ export default function EditToolbar() {
 
   const isActive = mode === "editing" || mode === "saving" || mode === "publishing";
 
-  // Toggle edit-mode body class + apply/remove contentEditable on data-editable elements.
-  // Re-runs on pathname change so navigating while editing keeps elements editable.
   useEffect(() => {
     document.body.classList.toggle("edit-mode", isActive);
 
@@ -24,8 +158,10 @@ export default function EditToolbar() {
       document.querySelectorAll<HTMLElement>("[data-editable]").forEach((el) => {
         el.contentEditable = "true";
       });
+      injectArrayControls();
     }
     if (mode === "idle") {
+      cleanupArrayControls();
       document.querySelectorAll<HTMLElement>("[data-editable]").forEach((el) => {
         el.contentEditable = "false";
       });
@@ -56,15 +192,6 @@ export default function EditToolbar() {
     }
   };
 
-  const collectEdits = (): Record<string, string> => {
-    const edits: Record<string, string> = {};
-    document.querySelectorAll<HTMLElement>("[data-editable][data-path]").forEach((el) => {
-      const p = el.getAttribute("data-path");
-      if (p) edits[p] = el.innerText.trim();
-    });
-    return edits;
-  };
-
   const token = () => sessionStorage.getItem("editToken") ?? "";
 
   const handleSave = async () => {
@@ -77,7 +204,7 @@ export default function EditToolbar() {
           "Content-Type": "application/json",
           "x-edit-token": token(),
         },
-        body: JSON.stringify({ edits: collectEdits() }),
+        body: JSON.stringify(collectEdits()),
       });
       setStatus(res.ok ? { text: "Saved ✓", ok: true } : { text: "Save failed", ok: false });
     } catch {
@@ -107,6 +234,7 @@ export default function EditToolbar() {
   };
 
   const handleExit = () => {
+    cleanupArrayControls();
     sessionStorage.removeItem("editToken");
     setMode("idle");
     setStatus(null);
@@ -116,7 +244,7 @@ export default function EditToolbar() {
 
   return (
     <>
-      {/* ── Pencil trigger (idle only) ────────────────────────────────── */}
+      {/* ── Pencil trigger ─────────────────────────────────────────── */}
       {mode === "idle" && (
         <button
           onClick={() => setMode("auth")}
@@ -124,30 +252,23 @@ export default function EditToolbar() {
           className="fixed bottom-6 right-6 z-[100] w-10 h-10 bg-neutral-950 border border-neutral-800 hover:border-amber-500/60 text-neutral-600 hover:text-amber-400 flex items-center justify-center transition-colors shadow-lg"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
         </button>
       )}
 
-      {/* ── Password modal ────────────────────────────────────────────── */}
+      {/* ── Password modal ──────────────────────────────────────────── */}
       {mode === "auth" && (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-neutral-950 border border-neutral-800 p-8 w-full max-w-sm shadow-2xl">
             <div className="flex items-center gap-2 mb-5">
               <div className="h-px w-6 bg-amber-500" />
-              <span className="font-mono text-[11px] text-amber-400 tracking-widest">
-                EDIT MODE
-              </span>
+              <span className="font-mono text-[11px] text-amber-400 tracking-widest">EDIT MODE</span>
             </div>
             <p className="font-mono text-sm text-neutral-500 mb-6">
               Enter password to unlock inline editing.
             </p>
-
             <input
               ref={inputRef}
               type="password"
@@ -157,11 +278,7 @@ export default function EditToolbar() {
               className="w-full bg-[#111] border border-neutral-800 focus:border-amber-500 text-neutral-100 font-mono text-sm px-4 py-3 outline-none transition-colors"
               placeholder="Password"
             />
-
-            {authError && (
-              <p className="font-mono text-xs text-red-400 mt-2">{authError}</p>
-            )}
-
+            {authError && <p className="font-mono text-xs text-red-400 mt-2">{authError}</p>}
             <div className="flex gap-3 mt-5">
               <button
                 onClick={authenticate}
@@ -170,11 +287,7 @@ export default function EditToolbar() {
                 UNLOCK
               </button>
               <button
-                onClick={() => {
-                  setMode("idle");
-                  setPassword("");
-                  setAuthError("");
-                }}
+                onClick={() => { setMode("idle"); setPassword(""); setAuthError(""); }}
                 className="px-5 border border-neutral-800 hover:border-neutral-600 text-neutral-600 hover:text-neutral-300 font-mono text-xs transition-colors"
               >
                 CANCEL
@@ -184,30 +297,23 @@ export default function EditToolbar() {
         </div>
       )}
 
-      {/* ── Active editing toolbar ────────────────────────────────────── */}
+      {/* ── Active toolbar ──────────────────────────────────────────── */}
       {isActive && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 bg-neutral-950 border border-amber-500/25 px-5 py-3 shadow-2xl whitespace-nowrap">
-          {/* Pulse indicator */}
           <div className="flex items-center gap-1.5 mr-1 shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             <span className="font-mono text-[10px] text-amber-400 tracking-widest">EDITING</span>
           </div>
 
-          {/* Status message */}
           {status && (
-            <span
-              className={`font-mono text-[10px] tracking-wide border px-2 py-0.5 ${
-                status.ok
-                  ? "text-green-400 border-green-500/30"
-                  : "text-red-400 border-red-500/30"
-              }`}
-            >
+            <span className={`font-mono text-[10px] tracking-wide border px-2 py-0.5 ${
+              status.ok ? "text-green-400 border-green-500/30" : "text-red-400 border-red-500/30"
+            }`}>
               {status.text}
             </span>
           )}
 
           <div className="flex gap-2">
-            {/* Save */}
             <button
               onClick={handleSave}
               disabled={busy}
@@ -216,7 +322,6 @@ export default function EditToolbar() {
               {mode === "saving" ? <><Spinner /> SAVING</> : "SAVE"}
             </button>
 
-            {/* Publish */}
             <button
               onClick={handlePublish}
               disabled={busy}
@@ -227,19 +332,14 @@ export default function EditToolbar() {
               ) : (
                 <>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   PUBLISH
                 </>
               )}
             </button>
 
-            {/* Exit */}
             <button
               onClick={handleExit}
               disabled={busy}
@@ -259,11 +359,7 @@ function Spinner() {
   return (
     <svg className="w-3 h-3 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
   );
 }
