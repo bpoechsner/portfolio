@@ -17,12 +17,27 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bpoechsner.vercel.app";
+
 export const metadata: Metadata = {
   title: {
     default: content.seo.title,
     template: `%s | ${content.meta.name}`,
   },
   description: content.seo.description,
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    title: content.seo.title,
+    description: content.seo.description,
+    siteName: content.meta.name,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: content.seo.title,
+    description: content.seo.description,
+  },
+  metadataBase: new URL(siteUrl),
 };
 
 export default function RootLayout({

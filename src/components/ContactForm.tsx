@@ -12,14 +12,20 @@ export default function ContactForm() {
     e.preventDefault();
     setStatus("sending");
 
-    // TODO: Replace with your form backend (Formspree, EmailJS, or a Next.js API route).
-    // For now, simulates a successful submission.
-    await new Promise((r) => setTimeout(r, 900));
-    setStatus("sent");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      setStatus(res.ok ? "sent" : "error");
+    } catch {
+      setStatus("error");
+    }
   };
 
   const input =
-    "w-full bg-[#111] border border-neutral-800 text-neutral-100 font-mono text-sm px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors placeholder:text-neutral-700";
+    "w-full bg-[#111] border border-neutral-800 text-neutral-100 font-mono text-sm px-4 py-3 focus:outline-none focus:border-accent-500 transition-colors placeholder:text-neutral-700";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -68,7 +74,7 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={status === "sending" || status === "sent"}
-        className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-600 text-neutral-950 font-mono text-sm font-bold tracking-widest py-3 transition-colors"
+        className="w-full bg-accent-500 hover:bg-accent-400 disabled:bg-neutral-800 disabled:text-neutral-600 text-neutral-950 font-mono text-sm font-bold tracking-widest py-3 transition-colors"
       >
         {status === "idle" && "SEND MESSAGE"}
         {status === "sending" && "SENDING..."}
@@ -77,8 +83,13 @@ export default function ContactForm() {
       </button>
 
       {status === "sent" && (
-        <p className="font-mono text-xs text-amber-400/70 text-center tracking-wider">
+        <p className="font-mono text-xs text-accent-400/70 text-center tracking-wider">
           Thanks — I&apos;ll get back to you soon.
+        </p>
+      )}
+      {status === "error" && (
+        <p className="font-mono text-xs text-red-400/70 text-center tracking-wider">
+          Something went wrong. Try emailing me directly.
         </p>
       )}
     </form>
