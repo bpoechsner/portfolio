@@ -5,10 +5,17 @@ import { usePathname } from "next/navigation";
 
 type Mode = "idle" | "auth" | "editing" | "saving" | "publishing";
 
+const PRESETS = [
+  { id: "amber",  hex: "#f59e0b" },
+  { id: "cyan",   hex: "#06b6d4" },
+  { id: "violet", hex: "#8b5cf6" },
+  { id: "green",  hex: "#22c55e" },
+  { id: "rose",   hex: "#f43f5e" },
+] as const;
+
 // ── Array controls injected into the DOM in edit mode ─────────────────────
 
 function injectArrayControls() {
-  // Group all array-item elements by their parent path
   const groups = new Map<string, HTMLElement[]>();
 
   document.querySelectorAll<HTMLElement>("[data-editable][data-path]").forEach((el) => {
@@ -24,7 +31,6 @@ function injectArrayControls() {
 
   groups.forEach((els, parentPath) => {
     els.forEach((el) => {
-      // Delete button — appears on hover/focus
       const del = document.createElement("button");
       del.dataset.editInjected = "true";
       del.title = "Remove item";
@@ -50,19 +56,17 @@ function injectArrayControls() {
       el.insertAdjacentElement("afterend", del);
     });
 
-    // "+" add button after the last item in the group
     const lastEl = els[els.length - 1];
     const add = document.createElement("button");
     add.dataset.editInjected = "true";
     add.textContent = "+ add";
     add.style.cssText =
       "margin-left:6px;padding:1px 7px;font-size:9px;font-family:monospace;letter-spacing:.1em;" +
-      "color:rgb(251,191,36);border:1px dashed rgba(245,158,11,0.4);" +
+      "color:rgb(var(--accent-400));border:1px dashed rgb(var(--accent-500)/0.4);" +
       "background:transparent;cursor:pointer;vertical-align:middle;line-height:1.4;";
 
     add.onmousedown = (e) => {
       e.preventDefault();
-      // Clone the last el's style/class, give it a new high index so it sorts last
       const existingPaths = Array.from(
         document.querySelectorAll<HTMLElement>(`[data-path^="${parentPath}."]`)
       )
@@ -79,7 +83,6 @@ function injectArrayControls() {
 
       add.insertAdjacentElement("beforebegin", newEl);
 
-      // Inject delete button for the new item too
       const newDel = document.createElement("button");
       newDel.dataset.editInjected = "true";
       newDel.title = "Remove item";
@@ -96,7 +99,6 @@ function injectArrayControls() {
       newEl.insertAdjacentElement("afterend", newDel);
 
       newEl.focus();
-      // Select all text for easy replacement
       const range = document.createRange();
       range.selectNodeContents(newEl);
       window.getSelection()?.removeAllRanges();
@@ -115,7 +117,6 @@ function cleanupArrayControls() {
 
 function collectEdits(): { scalars: Record<string, string>; arrays: Record<string, string[]> } {
   const scalars: Record<string, string> = {};
-  // Collect array items in DOM order, grouped by parent path
   const arrayItems = new Map<string, string[]>();
 
   document.querySelectorAll<HTMLElement>("[data-editable][data-path]").forEach((el) => {
@@ -127,7 +128,7 @@ function collectEdits(): { scalars: Record<string, string>; arrays: Record<strin
       const parent = parts.slice(0, -1).join(".");
       if (!arrayItems.has(parent)) arrayItems.set(parent, []);
       const val = el.innerText.trim();
-      if (val) arrayItems.get(parent)!.push(val); // skip blank items
+      if (val) arrayItems.get(parent)!.push(val);
     } else {
       scalars[path] = el.innerText.trim();
     }
@@ -146,6 +147,8 @@ export default function EditToolbar() {
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [status, setStatus] = useState<{ text: string; ok: boolean } | null>(null);
+  const [theme, setTheme] = useState("amber");
+  const [columns, setColumns] = useState(3);
   const inputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
 
@@ -155,6 +158,10 @@ export default function EditToolbar() {
     document.body.classList.toggle("edit-mode", isActive);
 
     if (mode === "editing") {
+      // Read current theme + columns from DOM (set by ThemeApplier)
+      setTheme(document.documentElement.getAttribute("data-theme") ?? "amber");
+      setColumns(Number(document.documentElement.getAttribute("data-columns") ?? "3") || 3);
+
       document.querySelectorAll<HTMLElement>("[data-editable]").forEach((el) => {
         el.contentEditable = "true";
       });
@@ -175,6 +182,16 @@ export default function EditToolbar() {
       return () => clearTimeout(t);
     }
   }, [mode]);
+
+  const applyTheme = (preset: string) => {
+    setTheme(preset);
+    document.documentElement.setAttribute("data-theme", preset);
+  };
+
+  const applyColumns = (n: number) => {
+    setColumns(n);
+    document.documentElement.setAttribute("data-columns", String(n));
+  };
 
   const authenticate = async () => {
     const res = await fetch("/api/auth", {
@@ -198,13 +215,18 @@ export default function EditToolbar() {
     setStatus(null);
     setMode("saving");
     try {
+      const { scalars, arrays } = collectEdits();
+      // Include theme settings in the save
+      scalars["theme.accent"] = theme;
+      scalars["theme.projectColumns"] = String(columns);
+
       const res = await fetch("/api/save-content", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-edit-token": token(),
         },
-        body: JSON.stringify(collectEdits()),
+        body: JSON.stringify({ scalars, arrays }),
       });
       setStatus(res.ok ? { text: "Saved ✓", ok: true } : { text: "Save failed", ok: false });
     } catch {
@@ -249,7 +271,7 @@ export default function EditToolbar() {
         <button
           onClick={() => setMode("auth")}
           title="Edit content"
-          className="fixed bottom-6 right-6 z-[100] w-10 h-10 bg-neutral-950 border border-neutral-800 hover:border-amber-500/60 text-neutral-600 hover:text-amber-400 flex items-center justify-center transition-colors shadow-lg"
+          className="fixed bottom-6 right-6 z-[100] w-10 h-10 bg-neutral-950 border border-neutral-800 hover:border-accent-500/60 text-neutral-600 hover:text-accent-400 flex items-center justify-center transition-colors shadow-lg"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -263,8 +285,8 @@ export default function EditToolbar() {
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-neutral-950 border border-neutral-800 p-8 w-full max-w-sm shadow-2xl">
             <div className="flex items-center gap-2 mb-5">
-              <div className="h-px w-6 bg-amber-500" />
-              <span className="font-mono text-[11px] text-amber-400 tracking-widest">EDIT MODE</span>
+              <div className="h-px w-6 bg-accent-500" />
+              <span className="font-mono text-[11px] text-accent-400 tracking-widest">EDIT MODE</span>
             </div>
             <p className="font-mono text-sm text-neutral-500 mb-6">
               Enter password to unlock inline editing.
@@ -275,14 +297,14 @@ export default function EditToolbar() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && authenticate()}
-              className="w-full bg-[#111] border border-neutral-800 focus:border-amber-500 text-neutral-100 font-mono text-sm px-4 py-3 outline-none transition-colors"
+              className="w-full bg-[#111] border border-neutral-800 focus:border-accent-500 text-neutral-100 font-mono text-sm px-4 py-3 outline-none transition-colors"
               placeholder="Password"
             />
             {authError && <p className="font-mono text-xs text-red-400 mt-2">{authError}</p>}
             <div className="flex gap-3 mt-5">
               <button
                 onClick={authenticate}
-                className="flex-1 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-mono text-xs font-bold tracking-widest py-2.5 transition-colors"
+                className="flex-1 bg-accent-500 hover:bg-accent-400 text-neutral-950 font-mono text-xs font-bold tracking-widest py-2.5 transition-colors"
               >
                 UNLOCK
               </button>
@@ -299,11 +321,53 @@ export default function EditToolbar() {
 
       {/* ── Active toolbar ──────────────────────────────────────────── */}
       {isActive && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 bg-neutral-950 border border-amber-500/25 px-5 py-3 shadow-2xl whitespace-nowrap">
-          <div className="flex items-center gap-1.5 mr-1 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span className="font-mono text-[10px] text-amber-400 tracking-widest">EDITING</span>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 bg-neutral-950 border border-accent-500/25 px-5 py-3 shadow-2xl whitespace-nowrap">
+          {/* Status indicator */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
+            <span className="font-mono text-[10px] text-accent-400 tracking-widest">EDITING</span>
           </div>
+
+          <div className="w-px h-5 bg-neutral-800 shrink-0" />
+
+          {/* Color presets */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                title={p.id}
+                onClick={() => applyTheme(p.id)}
+                style={{ background: p.hex }}
+                className={`w-4 h-4 rounded-full transition-all ${
+                  theme === p.id
+                    ? "ring-2 ring-white/50 ring-offset-1 ring-offset-neutral-950 scale-110"
+                    : "opacity-50 hover:opacity-100"
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="w-px h-5 bg-neutral-800 shrink-0" />
+
+          {/* Project columns toggle */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="font-mono text-[9px] text-neutral-700 tracking-widest mr-1">COLS</span>
+            {[2, 3].map((n) => (
+              <button
+                key={n}
+                onClick={() => applyColumns(n)}
+                className={`font-mono text-[10px] w-6 h-5 transition-colors ${
+                  columns === n
+                    ? "bg-accent-500/20 text-accent-400 border border-accent-500/40"
+                    : "text-neutral-600 hover:text-neutral-400 border border-neutral-800"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-5 bg-neutral-800 shrink-0" />
 
           {status && (
             <span className={`font-mono text-[10px] tracking-wide border px-2 py-0.5 ${
@@ -317,7 +381,7 @@ export default function EditToolbar() {
             <button
               onClick={handleSave}
               disabled={busy}
-              className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-600 text-neutral-950 font-mono text-[11px] font-bold tracking-widest px-4 py-2 transition-colors"
+              className="flex items-center gap-1.5 bg-accent-500 hover:bg-accent-400 disabled:bg-neutral-800 disabled:text-neutral-600 text-neutral-950 font-mono text-[11px] font-bold tracking-widest px-4 py-2 transition-colors"
             >
               {mode === "saving" ? <><Spinner /> SAVING</> : "SAVE"}
             </button>
@@ -325,7 +389,7 @@ export default function EditToolbar() {
             <button
               onClick={handlePublish}
               disabled={busy}
-              className="flex items-center gap-1.5 border border-neutral-700 hover:border-amber-500/60 disabled:border-neutral-800 text-neutral-400 hover:text-amber-400 disabled:text-neutral-700 font-mono text-[11px] tracking-widest px-4 py-2 transition-colors"
+              className="flex items-center gap-1.5 border border-neutral-700 hover:border-accent-500/60 disabled:border-neutral-800 text-neutral-400 hover:text-accent-400 disabled:text-neutral-700 font-mono text-[11px] tracking-widest px-4 py-2 transition-colors"
             >
               {mode === "publishing" ? (
                 <><Spinner /> PUSHING</>

@@ -7,6 +7,14 @@ function authorized(req: NextRequest): boolean {
   return !!process.env.EDIT_PASSWORD && token === process.env.EDIT_PASSWORD;
 }
 
+function parseScalar(v: string): unknown {
+  if (v === "true") return true;
+  if (v === "false") return false;
+  const n = Number(v);
+  if (!isNaN(n) && v.trim() !== "") return n;
+  return v;
+}
+
 function setAtPath(obj: unknown, dotPath: string, value: unknown): void {
   const keys = dotPath.split(".");
   let cur = obj as Record<string, unknown>;
@@ -25,7 +33,6 @@ export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     scalars?: Record<string, string>;
     arrays?: Record<string, string[]>;
-    // legacy format — plain edits object sent before the array-controls update
     edits?: Record<string, string>;
   };
 
@@ -38,12 +45,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Could not read content.json" }, { status: 500 });
   }
 
-  // Support both new { scalars, arrays } format and legacy { edits } format
   const scalars = body.scalars ?? body.edits ?? {};
   const arrays = body.arrays ?? {};
 
   for (const [dotPath, value] of Object.entries(scalars)) {
-    try { setAtPath(content, dotPath, value); } catch { /* skip bad paths */ }
+    try { setAtPath(content, dotPath, parseScalar(value)); } catch { /* skip bad paths */ }
   }
   for (const [dotPath, value] of Object.entries(arrays)) {
     try { setAtPath(content, dotPath, value); } catch { /* skip bad paths */ }

@@ -26,7 +26,7 @@ export default function SkillsPage() {
         {skills.map((group, gi) => (
           <div key={group.category} className="border border-neutral-800 bg-neutral-900/20 p-5">
             <h2
-              className="font-mono text-xs font-bold text-amber-400 tracking-widest mb-4"
+              className="font-mono text-xs font-bold text-accent-400 tracking-widest mb-4"
               data-editable="true"
               data-path={`skills.${gi}.category`}
             >
@@ -35,7 +35,7 @@ export default function SkillsPage() {
             <ul className="space-y-2.5">
               {group.items.filter((i) => i.trim()).map((item, ii) => (
                 <li key={item} className="flex items-start gap-2">
-                  <span className="text-amber-500/60 mt-[3px] text-xs shrink-0">▸</span>
+                  <span className="text-accent-500/60 mt-[3px] text-xs shrink-0">▸</span>
                   <span
                     className="font-mono text-[13px] text-neutral-300 leading-snug"
                     data-editable="true"
@@ -59,7 +59,7 @@ export default function SkillsPage() {
           {skills.flatMap((g) => g.items).map((item) => (
             <span
               key={item}
-              className="font-mono text-[11px] text-neutral-500 border border-neutral-800 px-3 py-1 hover:border-amber-500/40 hover:text-neutral-200 transition-colors cursor-default"
+              className="font-mono text-[11px] text-neutral-500 border border-neutral-800 px-3 py-1 hover:border-accent-500/40 hover:text-neutral-200 transition-colors cursor-default"
             >
               {item}
             </span>

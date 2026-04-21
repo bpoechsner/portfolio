@@ -44,7 +44,7 @@ export default function Navbar({ logo, links }: NavbarProps) {
         {/* Logo */}
         <Link
           href="/"
-          className="font-mono font-bold text-amber-400 tracking-[0.22em] text-sm hover:text-amber-300 transition-colors"
+          className="font-mono font-bold text-accent-400 tracking-[0.22em] text-sm hover:text-accent-300 transition-colors"
           data-editable="true"
           data-path="nav.logo"
         >
@@ -61,13 +61,13 @@ export default function Navbar({ logo, links }: NavbarProps) {
                 href={link.href}
                 className={`relative font-mono text-[11px] tracking-[0.16em] transition-colors ${
                   active
-                    ? "text-amber-400"
+                    ? "text-accent-400"
                     : "text-neutral-500 hover:text-neutral-200"
                 }`}
               >
                 {link.label.toUpperCase()}
                 {active && (
-                  <span className="absolute -bottom-[18px] left-0 right-0 h-px bg-amber-500" />
+                  <span className="absolute -bottom-[18px] left-0 right-0 h-px bg-accent-500" />
                 )}
               </Link>
             );
@@ -77,7 +77,7 @@ export default function Navbar({ logo, links }: NavbarProps) {
         {/* Mobile hamburger */}
         <button
           onClick={() => setIsOpen((o) => !o)}
-          className="md:hidden text-neutral-400 hover:text-amber-400 transition-colors"
+          className="md:hidden text-neutral-400 hover:text-accent-400 transition-colors"
           aria-label="Toggle navigation"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@ export default function Navbar({ logo, links }: NavbarProps) {
               key={link.href}
               href={link.href}
               className={`font-mono text-[11px] tracking-[0.16em] ${
-                pathname === link.href ? "text-amber-400" : "text-neutral-500"
+                pathname === link.href ? "text-accent-400" : "text-neutral-500"
               }`}
             >
               {link.label.toUpperCase()}

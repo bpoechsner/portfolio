@@ -14,15 +14,15 @@ export default function Home() {
   return (
     <section className="relative min-h-screen flex items-center bg-grid overflow-hidden">
       {/* Ambient bloom */}
-      <div className="absolute top-[40%] left-[30%] w-[700px] h-[500px] bg-amber-500/4 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-amber-600/3 rounded-full blur-[80px] pointer-events-none" />
+      <div className="absolute top-[40%] left-[30%] w-[700px] h-[500px] bg-accent-500/4 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-accent-600/3 rounded-full blur-[80px] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-28 pb-24 w-full">
         {/* Overline */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-px w-10 bg-amber-500" />
+          <div className="h-px w-10 bg-accent-500" />
           <span
-            className="font-mono text-amber-400 text-[11px] tracking-[0.3em]"
+            className="font-mono text-accent-400 text-[11px] tracking-[0.3em]"
             data-editable="true"
             data-path="hero.subheadline"
           >
@@ -41,7 +41,7 @@ export default function Home() {
 
         {/* Headline */}
         <h1
-          className="font-mono font-bold leading-[0.88] tracking-tight mb-8 text-gradient-amber"
+          className="font-mono font-bold leading-[0.88] tracking-tight mb-8 text-gradient-accent"
           style={{ fontSize: "clamp(3.2rem, 9.5vw, 8.5rem)" }}
           data-editable="true"
           data-path="hero.headline"
@@ -63,7 +63,7 @@ export default function Home() {
           {hero.tags.filter((t) => t.trim()).map((tag, i) => (
             <span
               key={tag}
-              className="font-mono text-[11px] text-amber-400/70 border border-amber-500/20 bg-amber-500/5 px-3 py-1 tracking-wide"
+              className="font-mono text-[11px] text-accent-400/70 border border-accent-500/20 bg-accent-500/5 px-3 py-1 tracking-wide"
               data-editable="true"
               data-path={`hero.tags.${i}`}
             >
@@ -76,7 +76,7 @@ export default function Home() {
         <div className="flex flex-wrap gap-4 mb-20">
           <Link
             href="/projects"
-            className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-mono text-[13px] font-bold tracking-widest px-7 py-3.5 transition-colors"
+            className="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-400 text-neutral-950 font-mono text-[13px] font-bold tracking-widest px-7 py-3.5 transition-colors"
           >
             VIEW WORK
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@ export default function Home() {
 
           <a
             href={meta.resume}
-            className="inline-flex items-center gap-2 border border-neutral-700 hover:border-amber-500 text-neutral-400 hover:text-amber-400 font-mono text-[13px] tracking-widest px-7 py-3.5 transition-colors"
+            className="inline-flex items-center gap-2 border border-neutral-700 hover:border-accent-500 text-neutral-400 hover:text-accent-400 font-mono text-[13px] tracking-widest px-7 py-3.5 transition-colors"
           >
             RESUME
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,7 +106,7 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 border-t border-neutral-800/60 pt-8">
           {stats.map((stat) => (
             <div key={stat.label}>
-              <div className="font-mono text-2xl font-bold text-amber-400 mb-1">{stat.value}</div>
+              <div className="font-mono text-2xl font-bold text-accent-400 mb-1">{stat.value}</div>
               <div className="font-mono text-[10px] text-neutral-700 tracking-[0.2em]">
                 {stat.label.toUpperCase()}
               </div>

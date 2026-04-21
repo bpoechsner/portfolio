@@ -2,6 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Accent color presets ─────────────────────────────────────────────────
+   Values are space-separated RGB so Tailwind's opacity modifier works:
+   e.g. bg-accent-500/20 → rgb(var(--accent-500) / 0.2)            */
+
+:root,
+[data-theme="amber"] {
+  --accent-300: 252 211 77;
+  --accent-400: 251 191 36;
+  --accent-500: 245 158 11;
+  --accent-600: 217 119 6;
+}
+
+[data-theme="cyan"] {
+  --accent-300: 103 232 249;
+  --accent-400: 34 211 238;
+  --accent-500: 6 182 212;
+  --accent-600: 8 145 178;
+}
+
+[data-theme="violet"] {
+  --accent-300: 196 181 253;
+  --accent-400: 167 139 250;
+  --accent-500: 139 92 246;
+  --accent-600: 124 58 237;
+}
+
+[data-theme="green"] {
+  --accent-300: 134 239 172;
+  --accent-400: 74 222 128;
+  --accent-500: 34 197 94;
+  --accent-600: 22 163 74;
+}
+
+[data-theme="rose"] {
+  --accent-300: 253 164 175;
+  --accent-400: 251 113 133;
+  --accent-500: 244 63 94;
+  --accent-600: 225 29 72;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -12,7 +52,6 @@
     color: #f0f0f0;
   }
 
-  /* Amber-tinted scrollbar */
   ::-webkit-scrollbar {
     width: 5px;
   }
@@ -24,63 +63,72 @@
     border-radius: 2px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #f59e0b;
+    background: rgb(var(--accent-500));
   }
 }
 
 @layer utilities {
-  /* Subtle amber grid overlay — used on hero and card backgrounds */
   .bg-grid {
     background-image:
-      linear-gradient(rgba(245, 158, 11, 0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(245, 158, 11, 0.045) 1px, transparent 1px);
+      linear-gradient(rgb(var(--accent-500) / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--accent-500) / 0.045) 1px, transparent 1px);
     background-size: 60px 60px;
   }
 
-  /* Dot-matrix pattern */
   .bg-dot {
-    background-image: radial-gradient(rgba(245, 158, 11, 0.1) 1px, transparent 1px);
+    background-image: radial-gradient(rgb(var(--accent-500) / 0.1) 1px, transparent 1px);
     background-size: 28px 28px;
   }
 
-  /* Amber gradient text */
-  .text-gradient-amber {
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 60%, #fcd34d 100%);
+  .text-gradient-accent {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--accent-500)) 0%,
+      rgb(var(--accent-400)) 60%,
+      rgb(var(--accent-300)) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Soft amber glow on cards */
   .card-glow:hover {
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35), 0 4px 32px rgba(245, 158, 11, 0.08);
+    box-shadow:
+      0 0 0 1px rgb(var(--accent-500) / 0.35),
+      0 4px 32px rgb(var(--accent-500) / 0.08);
+  }
+
+  /* Projects grid column override for live edit preview */
+  @media (min-width: 1024px) {
+    [data-columns="2"] .projects-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    [data-columns="3"] .projects-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 }
 
 /* ── Inline edit mode ──────────────────────────────────────────────────── */
 
-/* Dashed amber underline on every editable field so the owner can see
-   what is clickable. Overrides nothing on normal visitors. */
 .edit-mode [data-editable] {
   cursor: text;
-  border-bottom: 1px dashed rgba(245, 158, 11, 0.4);
+  border-bottom: 1px dashed rgb(var(--accent-500) / 0.4);
   outline: none;
   transition: background 0.15s, border-color 0.15s;
 }
 
 .edit-mode [data-editable]:hover {
-  border-bottom-color: rgba(245, 158, 11, 0.65);
+  border-bottom-color: rgb(var(--accent-500) / 0.65);
 }
 
-/* Solid amber underline + subtle tint while the field is focused */
 .edit-mode [data-editable]:focus {
-  border-bottom: 1px solid rgba(245, 158, 11, 0.8);
-  background: rgba(245, 158, 11, 0.06);
+  border-bottom: 1px solid rgb(var(--accent-500) / 0.8);
+  background: rgb(var(--accent-500) / 0.06);
   outline: none;
 }
 
-/* Prevent gradient-text from hiding the cursor inside the hero name */
-.edit-mode .text-gradient-amber[data-editable] {
+.edit-mode .text-gradient-accent[data-editable] {
   -webkit-text-fill-color: unset;
-  color: #fbbf24;
+  color: rgb(var(--accent-400));
 }

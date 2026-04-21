@@ -18,9 +18,9 @@ export default function SectionHeader({
   return (
     <div className="mb-14">
       <div className="flex items-center gap-3 mb-5">
-        <div className="h-px w-10 bg-amber-500" />
+        <div className="h-px w-10 bg-accent-500" />
         <span
-          className="font-mono text-amber-400 text-[11px] tracking-[0.3em]"
+          className="font-mono text-accent-400 text-[11px] tracking-[0.3em]"
           {...(labelPath ? { "data-editable": "true", "data-path": labelPath } : {})}
         >
           {label.toUpperCase()}

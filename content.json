@@ -1,4 +1,8 @@
 {
+  "theme": {
+    "accent": "amber",
+    "projectColumns": 3
+  },
   "meta": {
     "name": "Brandon Oechsner",
     "title": "Electrical Engineer · Maker · Robotics",

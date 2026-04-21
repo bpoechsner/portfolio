@@ -10,7 +10,6 @@ export default function ExperiencePage() {
   const { experience, pages } = content;
   const pg = pages.experience;
 
-  // Separate academic entry (MSU) from professional entries
   const professional = experience.filter((e) => e.id !== "msu");
   const academic = experience.find((e) => e.id === "msu");
   const academicIdx = experience.findIndex((e) => e.id === "msu");
@@ -38,9 +37,8 @@ export default function ExperiencePage() {
             const idx = experience.findIndex((e) => e.id === job.id);
             return (
               <div key={job.id} className="md:pl-12 relative">
-                {/* Dot */}
-                <div className="absolute hidden md:flex items-center justify-center w-[23px] h-[23px] border border-amber-500 bg-[#0a0a0a] top-1.5 left-0">
-                  <div className="w-[7px] h-[7px] bg-amber-500" />
+                <div className="absolute hidden md:flex items-center justify-center w-[23px] h-[23px] border border-accent-500 bg-[#0a0a0a] top-1.5 left-0">
+                  <div className="w-[7px] h-[7px] bg-accent-500" />
                 </div>
 
                 <div className="border border-neutral-800 bg-neutral-900/30 p-6 hover:border-neutral-700 card-glow transition-all">
@@ -54,7 +52,7 @@ export default function ExperiencePage() {
                         {job.role}
                       </h2>
                       <p
-                        className="font-mono text-sm text-amber-400/70 mt-0.5"
+                        className="font-mono text-sm text-accent-400/70 mt-0.5"
                         data-editable="true"
                         data-path={`experience.${idx}.company`}
                       >
@@ -100,7 +98,7 @@ export default function ExperiencePage() {
                   {academic.role}
                 </h2>
                 <p
-                  className="font-mono text-sm text-amber-400/70 mt-0.5"
+                  className="font-mono text-sm text-accent-400/70 mt-0.5"
                   data-editable="true"
                   data-path={`experience.${academicIdx}.company`}
                 >
