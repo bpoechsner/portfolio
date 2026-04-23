@@ -41,18 +41,18 @@
   "hero": {
     "headline": "Brandon Oechsner",
     "subheadline": "Electrical Engineer · Maker · Robotics",
-    "description": "EE student at Midwestern State University building at the intersection of embedded systems, automation, and precision fabrication. Currently interning at Pratt & Whitney and United Regional Health Care System.",
+    "description": "EE student at MSU running two simultaneous engineering internships — aerospace manufacturing at Pratt & Whitney and RPA automation at United Regional Health Care System. Background spans embedded systems, DSP, CAD/fabrication, and hands-on electrical work from an apprenticeship background.",
     "availability": {
       "visible": true,
       "text": "Open to opportunities after graduation"
     },
     "tags": [
-      "Arduino",
+      "Arduino · Embedded C",
       "3D Printing · Bambu P1S",
-      "CAD · SolidWorks/Onshape",
-      "Coding · C++/MATLAB/Python",
-      "",
-      ""
+      "CAD · SolidWorks / Onshape",
+      "DSP · MATLAB · TMS320C6748",
+      "RPA · Process Automation",
+      "PLCs · Ladder Logic"
     ]
   },
   "pages": {
@@ -82,7 +82,7 @@
       "company": "Pratt & Whitney",
       "role": "Engineering Intern",
       "period": "Summer 2025",
-      "description": "Supporting aerospace engineering operations at one of the world's leading aircraft engine manufacturers. Hands-on exposure to precision manufacturing and engineering systems.",
+      "description": "Supporting aerospace engineering operations at one of the world's leading jet engine manufacturers. Hands-on exposure to precision manufacturing processes, engineering documentation, and the quality systems behind flight-critical components.",
       "logo": ""
     },
     {
@@ -90,7 +90,7 @@
       "company": "United Regional Health Care System",
       "role": "RPA Automation Engineer Intern",
       "period": "Summer 2025",
-      "description": "Developing robotic process automation solutions for healthcare system workflows. Designing and deploying automated processes to improve operational efficiency.",
+      "description": "Designing and deploying robotic process automation solutions that eliminate manual, repetitive workflows across healthcare operations. Identifying automation opportunities, building bots, and measuring process efficiency gains in a live clinical environment.",
       "logo": ""
     },
     {
@@ -98,22 +98,23 @@
       "company": "Midwestern State University",
       "role": "B.S. Electrical Engineering",
       "period": "2022 – Present · 3.8 GPA",
-      "description": "Coursework spanning DSP, embedded systems, circuit analysis, and controls. Hands-on lab work including FIR/IIR filter implementation on TMS320C6748 DSP hardware.",
+      "description": "Coursework spanning DSP, embedded systems, circuit analysis, controls, and industrial automation. Lab work includes FIR/IIR filter implementation on TMS320C6748 DSP hardware, PLC ladder logic programming, and pneumatic systems. Pre-college electrical apprenticeship background provides rare hands-on field experience alongside academic study.",
       "logo": ""
     }
   ],
   "projects": [
     {
       "id": "robotic-arm",
-      "title": "Arduino Robotic Arm",
+      "title": "6-DOF Arduino Robotic Arm",
       "category": "Robotics · Embedded",
-      "description": "Multi-axis robotic arm built from scratch using an Arduino UNO, MG996R high-torque servos, and fully custom 3D-printed structural components designed in Onshape for the Bambu Lab P1S printer.",
-      "body": "This project started as an exercise in mechanical design and grew into a full embedded systems build. Every structural component was designed parametrically in Onshape so dimensions could be adjusted without rebuilding the assembly from scratch. The arm was sliced and printed in PETG on the Bambu Lab P1S for its strength and dimensional accuracy.\n\nThe control system runs on an Arduino UNO, with each MG996R servo driven by PWM signals generated via the Servo library. Joint angles are mapped from potentiometer inputs, allowing real-time manual control. The next phase involves adding inverse kinematics so the end effector can be positioned by target coordinates rather than individual joint angles.",
+      "description": "6-degree-of-freedom robotic arm built from scratch — Arduino UNO driving a PCA9685 servo shield, MG996R and SG90 servos at each joint, and fully custom 3D-printed structural components designed in Onshape for the Bambu Lab P1S.",
+      "body": "This project started as an exercise in mechanical design and grew into a full embedded systems build. Every structural component was designed parametrically in Onshape so dimensions could be adjusted without rebuilding the assembly from scratch. The arm was sliced and printed in PETG on the Bambu Lab P1S for its strength and dimensional accuracy.\n\nThe control system runs on an Arduino UNO driving a PCA9685 16-channel PWM servo shield, which handles all six joints without saturating the Arduino's PWM outputs. MG996R high-torque servos handle the shoulder and elbow joints while lighter SG90s handle the wrist and gripper. Joint angles are mapped from potentiometer inputs, allowing real-time manual control. The next phase involves adding inverse kinematics so the end effector can be positioned by target coordinates rather than individual joint angles.",
       "highlights": [
-        "Fully parametric Onshape assembly — adjust one dimension, everything updates",
-        "MG996R high-torque servos at each joint for reliable load handling",
-        "PETG printed on Bambu Lab P1S for strength and warp resistance",
-        "PWM servo control via Arduino with potentiometer input mapping",
+        "6-DOF kinematic chain — shoulder, elbow, wrist rotation, wrist pitch, gripper",
+        "PCA9685 PWM servo shield offloads all 16 servo channels from the Arduino",
+        "MG996R high-torque servos at load-bearing joints, SG90s at wrist and gripper",
+        "Fully parametric Onshape assembly — adjust one variable, everything updates",
+        "PETG printed on Bambu Lab P1S for strength and dimensional accuracy",
         "Inverse kinematics implementation planned for next revision"
       ],
       "status": "In Progress",
@@ -125,10 +126,39 @@
       },
       "tech": [
         "Arduino UNO",
-        "MG996R Servos",
+        "PCA9685 Servo Shield",
+        "MG996R / SG90 Servos",
         "Onshape CAD",
-        "3D Printing",
+        "3D Printing · PETG",
         "C++"
+      ]
+    },
+    {
+      "id": "treadmill-teardown",
+      "title": "Treadmill Motor & Drive Teardown",
+      "category": "Hardware · Reverse Engineering",
+      "description": "Disassembled a commercial treadmill to salvage the DC drive motor, PWM motor controller, and mechanical subsystems. Documented component specs and catalogued each part for reuse in future builds.",
+      "body": "Rather than discarding a broken commercial treadmill, I disassembled it systematically to recover high-value components. The DC treadmill motor — typically a 2–3 HP permanent magnet motor — is ideal for reuse in a lathe, belt grinder, or variable-speed drive project because the existing PWM motor controller already provides smooth, variable-speed control.\n\nThe teardown involved identifying and bench-testing the motor controller board, mapping the wiring harness, and recording torque and speed ratings from the motor nameplate. The process required understanding how the controller interfaces with the speed sensor and safety key circuit before isolating the motor for standalone operation.",
+      "highlights": [
+        "Recovered 2+ HP DC permanent magnet motor suitable for lathe or belt grinder build",
+        "Mapped and isolated the PWM motor controller for standalone reuse",
+        "Documented wiring harness — speed sensor, safety key, and throttle interfaces",
+        "Catalogued all mechanical hardware: rollers, belt, deck, frame extrusions",
+        "Demonstrates component-level understanding over black-box thinking"
+      ],
+      "status": "Complete",
+      "image": "",
+      "links": {
+        "github": "",
+        "demo": "",
+        "files": ""
+      },
+      "tech": [
+        "DC Motor Analysis",
+        "PWM Motor Controller",
+        "Wiring / Harness Mapping",
+        "Component Testing",
+        "Reverse Engineering"
       ]
     },
     {
@@ -240,22 +270,27 @@
         "C++ (Proficient)",
         "MATLAB (Proficient)",
         "Python (Working Knowledge)",
-        "Arduino / Embedded C"
+        "Arduino / Embedded C",
+        "RPA Tooling · Power Automate / UiPath"
       ]
     },
     {
       "category": "Hardware",
       "items": [
         "Arduino UNO / Nano",
+        "PCA9685 PWM Servo Shield",
         "TMS320C6748 DSP Board",
         "Servo & Motor Control",
+        "PLCs · Ladder Logic",
         "Electrical Apprenticeship Background"
       ]
     },
     {
       "category": "Design & Fabrication",
       "items": [
+        "SolidWorks (CSWA Certified)",
         "Onshape (Parametric CAD)",
+        "Revit MEP Electrical",
         "Bambu Lab P1S",
         "FDM / PLA / PETG",
         "Design for Manufacture"
@@ -267,7 +302,9 @@
         "Digital Signal Processing",
         "FIR / IIR Filter Design",
         "Robotic Process Automation",
-        "Pneumatic Systems"
+        "Pneumatic Systems",
+        "Industrial Controls · PLC / HMI",
+        "Reverse Engineering & Teardown"
       ]
     }
   ],
