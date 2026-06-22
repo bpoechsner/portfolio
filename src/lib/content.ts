@@ -13,6 +13,14 @@ const CONTENT_BLOB_PATH = "content.json";
 const VERSIONS_PREFIX = "versions/";
 const MAX_VERSIONS = 20;
 
+// Vercel Blob's public CDN caches by URL regardless of cacheControlMaxAge,
+// so a stable pathname can serve a stale edge copy for a few seconds after
+// a write. Appending a cache-busting query param forces every read past
+// the URL-keyed cache straight to origin.
+function bust(url: string): string {
+  return `${url}${url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+}
+
 // Live content lives in Vercel Blob so edits made on the deployed site take
 // effect immediately, without a rebuild. content.json on disk is only the
 // initial seed (and the snapshot that `Publish` writes back for git history).
@@ -22,7 +30,7 @@ export async function getContent(): Promise<Content> {
   }
   try {
     const blob = await head(CONTENT_BLOB_PATH);
-    const res = await fetch(blob.url, { cache: "no-store" });
+    const res = await fetch(bust(blob.url), { cache: "no-store" });
     if (res.ok) {
       return (await res.json()) as Content;
     }
@@ -37,7 +45,7 @@ export async function getContent(): Promise<Content> {
 async function snapshotCurrentContent(): Promise<void> {
   try {
     const blob = await head(CONTENT_BLOB_PATH);
-    const res = await fetch(blob.url, { cache: "no-store" });
+    const res = await fetch(bust(blob.url), { cache: "no-store" });
     if (!res.ok) return;
     const json = await res.text();
     await put(`${VERSIONS_PREFIX}${new Date().toISOString().replace(/[:.]/g, "-")}.json`, json, {
@@ -89,7 +97,7 @@ export async function restoreVersion(pathname: string): Promise<void> {
     throw new Error("Invalid version path");
   }
   const blob = await head(pathname);
-  const res = await fetch(blob.url, { cache: "no-store" });
+  const res = await fetch(bust(blob.url), { cache: "no-store" });
   if (!res.ok) throw new Error("Could not load that version");
   const content = (await res.json()) as Content;
   await saveContent(content);
