@@ -113,6 +113,222 @@ function cleanupArrayControls() {
   document.querySelectorAll("[data-edit-injected]").forEach((el) => el.remove());
 }
 
+// ── Whole-entry add/remove for object arrays (projects, experience, etc.) ──
+
+function escapeAttr(v: string) {
+  return v.replace(/"/g, '\\"');
+}
+
+function reindexItem(container: HTMLElement, arrayPath: string, oldIndex: number, newIndex: number) {
+  if (oldIndex === newIndex) return;
+  container.setAttribute("data-array-index", String(newIndex));
+  const prefix = `${arrayPath}.${oldIndex}.`;
+  const nextPrefix = `${arrayPath}.${newIndex}.`;
+  container.querySelectorAll<HTMLElement>("[data-path]").forEach((el) => {
+    const p = el.getAttribute("data-path")!;
+    if (p.startsWith(prefix)) {
+      el.setAttribute("data-path", nextPrefix + p.slice(prefix.length));
+    }
+  });
+}
+
+function attachRemoveButton(item: HTMLElement, arrayPath: string) {
+  if (item.querySelector('[data-role="remove-item"]')) return;
+  if (getComputedStyle(item).position === "static") item.style.position = "relative";
+
+  const del = document.createElement("button");
+  del.dataset.editInjected = "true";
+  del.dataset.role = "remove-item";
+  del.title = "Remove this entry";
+  del.textContent = "✕";
+  del.style.cssText =
+    "position:absolute;top:6px;right:6px;z-index:20;width:20px;height:20px;line-height:18px;" +
+    "font-size:11px;font-family:monospace;color:rgb(248,113,113);border:1px solid rgba(239,68,68,0.4);" +
+    "background:rgba(10,10,10,0.9);cursor:pointer;";
+
+  del.onmousedown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const removedIndex = Number(item.getAttribute("data-array-index"));
+    item.remove();
+    const remaining = Array.from(
+      document.querySelectorAll<HTMLElement>(`[data-array-item][data-array-path="${escapeAttr(arrayPath)}"]`)
+    ).sort((a, b) => Number(a.dataset.arrayIndex) - Number(b.dataset.arrayIndex));
+    remaining.forEach((r, idx) => {
+      const oldIdx = Number(r.dataset.arrayIndex);
+      if (oldIdx !== idx) reindexItem(r, arrayPath, oldIdx, idx);
+    });
+    void removedIndex;
+  };
+
+  item.appendChild(del);
+}
+
+function injectObjectArrayControls() {
+  const groups = new Map<string, HTMLElement[]>();
+  document.querySelectorAll<HTMLElement>("[data-array-item][data-array-path]").forEach((el) => {
+    const p = el.getAttribute("data-array-path")!;
+    if (!groups.has(p)) groups.set(p, []);
+    groups.get(p)!.push(el);
+  });
+
+  groups.forEach((els, arrayPath) => {
+    els.sort((a, b) => Number(a.dataset.arrayIndex) - Number(b.dataset.arrayIndex));
+    els.forEach((el) => attachRemoveButton(el, arrayPath));
+
+    const last = els[els.length - 1];
+    if (!last || last.parentElement?.querySelector('[data-role="add-item"]')) return;
+
+    const add = document.createElement("button");
+    add.dataset.editInjected = "true";
+    add.dataset.role = "add-item";
+    add.title = "Duplicate the last entry — then edit the copy";
+    add.textContent = "+ add entry";
+    add.style.cssText =
+      "display:block;margin:10px 0;padding:6px 12px;font-size:10px;font-family:monospace;letter-spacing:.1em;" +
+      "color:rgb(var(--accent-400));border:1px dashed rgb(var(--accent-500)/0.4);" +
+      "background:transparent;cursor:pointer;";
+
+    add.onmousedown = (e) => {
+      e.preventDefault();
+      const current = Array.from(
+        document.querySelectorAll<HTMLElement>(`[data-array-item][data-array-path="${escapeAttr(arrayPath)}"]`)
+      ).sort((a, b) => Number(a.dataset.arrayIndex) - Number(b.dataset.arrayIndex));
+      const template = current[current.length - 1];
+      if (!template) return;
+      const newIndex = current.length;
+
+      const clone = template.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll("[data-edit-injected]").forEach((n) => n.remove());
+
+      const oldIdx = Number(template.dataset.arrayIndex);
+      reindexItem(clone, arrayPath, oldIdx, newIndex);
+
+      const idField = template.getAttribute("data-id-field");
+      if (idField) {
+        const idPath = `${arrayPath}.${newIndex}.${idField}`;
+        let idSpan = clone.querySelector<HTMLElement>(`[data-path="${escapeAttr(idPath)}"]`);
+        if (!idSpan) {
+          idSpan = document.createElement("span");
+          idSpan.style.display = "none";
+          idSpan.setAttribute("data-editable", "true");
+          idSpan.setAttribute("data-path", idPath);
+          clone.appendChild(idSpan);
+        }
+        idSpan.textContent = `item-${Date.now()}`;
+      }
+
+      clone.querySelectorAll<HTMLElement>("[data-editable]").forEach((n) => {
+        n.contentEditable = "true";
+      });
+
+      template.insertAdjacentElement("afterend", clone);
+      attachRemoveButton(clone, arrayPath);
+      injectArrayControls();
+    };
+
+    last.insertAdjacentElement("afterend", add);
+  });
+}
+
+// ── Boolean toggles (e.g. nav link visibility) ──────────────────────────────
+
+function injectToggleControls() {
+  document.querySelectorAll<HTMLButtonElement>("[data-toggle-target]").forEach((btn) => {
+    if (btn.dataset.toggleBound) return;
+    btn.dataset.toggleBound = "true";
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const target = btn.getAttribute("data-toggle-target")!;
+      const span = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(target)}"]`);
+      if (!span) return;
+      const next = span.textContent?.trim() !== "true";
+      span.textContent = String(next);
+      btn.setAttribute("data-on", String(next));
+      const rowSelector = btn.getAttribute("data-toggle-row");
+      if (rowSelector) {
+        const row = btn.closest(rowSelector);
+        row?.classList.toggle("cms-hidden", !next);
+      }
+    });
+  });
+}
+
+// ── Cycling values (e.g. project status) ────────────────────────────────────
+
+function injectCycleControls() {
+  document.querySelectorAll<HTMLElement>("[data-cycle-target]").forEach((badge) => {
+    if (badge.dataset.cycleBound) return;
+    badge.dataset.cycleBound = "true";
+    badge.style.cursor = "pointer";
+    badge.addEventListener("click", (e) => {
+      e.preventDefault();
+      const target = badge.getAttribute("data-cycle-target")!;
+      const values = (badge.getAttribute("data-cycle-values") ?? "").split("|").filter(Boolean);
+      if (values.length === 0) return;
+      const span = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(target)}"]`);
+      const current = span?.textContent?.trim() ?? values[0];
+      const idx = values.indexOf(current);
+      const next = values[(idx + 1 + values.length) % values.length];
+      if (span) span.textContent = next;
+      badge.textContent = next.toUpperCase();
+    });
+  });
+}
+
+// ── Image upload (replaces pasting a URL) ───────────────────────────────────
+
+function injectUploadControls() {
+  document.querySelectorAll<HTMLButtonElement>("[data-upload-target]").forEach((btn) => {
+    if (btn.dataset.uploadBound) return;
+    btn.dataset.uploadBound = "true";
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.style.display = "none";
+    input.dataset.editInjected = "true";
+    btn.insertAdjacentElement("afterend", input);
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      input.click();
+    });
+
+    input.addEventListener("change", async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const originalLabel = btn.textContent;
+      btn.textContent = "Uploading…";
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload-image", {
+          method: "POST",
+          headers: { "x-edit-token": sessionStorage.getItem("editToken") ?? "" },
+          body: fd,
+        });
+        const data = (await res.json()) as { ok?: boolean; url?: string };
+        if (res.ok && data.url) {
+          const target = btn.getAttribute("data-upload-target")!;
+          const span = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(target)}"]`);
+          if (span) span.textContent = data.url;
+          const scope = btn.closest<HTMLElement>("[data-array-item]") ?? btn.closest<HTMLElement>(".project-cover-block") ?? document.body;
+          const img = scope.querySelector<HTMLImageElement>("img");
+          if (img) img.src = data.url;
+          btn.textContent = originalLabel;
+        } else {
+          btn.textContent = "Upload failed";
+        }
+      } catch {
+        btn.textContent = "Upload failed";
+      }
+      input.value = "";
+    });
+  });
+}
+
 // ── Collect edits from DOM ─────────────────────────────────────────────────
 
 function collectEdits(): { scalars: Record<string, string>; arrays: Record<string, string[]> } {
@@ -138,6 +354,76 @@ function collectEdits(): { scalars: Record<string, string>; arrays: Record<strin
   arrayItems.forEach((vals, parent) => { arrays[parent] = vals; });
 
   return { scalars, arrays };
+}
+
+function collectArrayLengths(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  document.querySelectorAll<HTMLElement>("[data-array-item][data-array-path]").forEach((el) => {
+    const p = el.getAttribute("data-array-path")!;
+    counts[p] = (counts[p] ?? 0) + 1;
+  });
+  return counts;
+}
+
+// ── 3D model upload (replaces pasting a download URL) ───────────────────────
+
+function injectModelUploadControls() {
+  document.querySelectorAll<HTMLButtonElement>("[data-model-upload-target]").forEach((btn) => {
+    if (btn.dataset.uploadBound) return;
+    btn.dataset.uploadBound = "true";
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".stl,.glb,.gltf,.3mf,.obj";
+    input.style.display = "none";
+    input.dataset.editInjected = "true";
+    btn.insertAdjacentElement("afterend", input);
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      input.click();
+    });
+
+    input.addEventListener("change", async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const originalLabel = btn.textContent;
+      btn.textContent = "Uploading…";
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload-model", {
+          method: "POST",
+          headers: { "x-edit-token": sessionStorage.getItem("editToken") ?? "" },
+          body: fd,
+        });
+        const data = (await res.json()) as { ok?: boolean; url?: string; format?: string; error?: string };
+        if (res.ok && data.url && data.format) {
+          const urlTarget = btn.getAttribute("data-model-upload-target")!;
+          const formatTarget = btn.getAttribute("data-model-upload-format-target");
+          const urlSpan = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(urlTarget)}"]`);
+          if (urlSpan) urlSpan.textContent = data.url;
+          if (formatTarget) {
+            const formatSpan = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(formatTarget)}"]`);
+            if (formatSpan) formatSpan.textContent = data.format;
+          }
+          const itemId = btn.getAttribute("data-model-upload-item");
+          if (itemId) {
+            const preview = document.querySelector(`[data-model-item="${escapeAttr(itemId)}"]`);
+            preview?.dispatchEvent(
+              new CustomEvent("model-src-changed", { detail: { url: data.url, format: data.format } })
+            );
+          }
+          btn.textContent = originalLabel;
+        } else {
+          btn.textContent = data.error ?? "Upload failed";
+        }
+      } catch {
+        btn.textContent = "Upload failed";
+      }
+      input.value = "";
+    });
+  });
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -166,6 +452,11 @@ export default function EditToolbar() {
         el.contentEditable = "true";
       });
       injectArrayControls();
+      injectObjectArrayControls();
+      injectToggleControls();
+      injectCycleControls();
+      injectUploadControls();
+      injectModelUploadControls();
     }
     if (mode === "idle") {
       cleanupArrayControls();
@@ -232,6 +523,7 @@ export default function EditToolbar() {
       // Include theme settings in the save
       scalars["theme.accent"] = theme;
       scalars["theme.projectColumns"] = String(columns);
+      const arrayLengths = collectArrayLengths();
 
       const res = await fetch("/api/save-content", {
         method: "POST",
@@ -239,7 +531,7 @@ export default function EditToolbar() {
           "Content-Type": "application/json",
           "x-edit-token": token(),
         },
-        body: JSON.stringify({ scalars, arrays }),
+        body: JSON.stringify({ scalars, arrays, arrayLengths }),
       });
       setStatus(res.ok ? { text: "Saved ✓", ok: true } : { text: "Save failed", ok: false });
     } catch {

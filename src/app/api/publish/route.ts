@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const cwd = process.cwd();
 
   try {
-    execSync("git add content.json", { cwd, stdio: "pipe" });
+    execSync("git add content.json public/uploads", { cwd, stdio: "pipe" });
 
     try {
       execSync('git commit -m "chore: update content via inline editor"', {

@@ -26,7 +26,12 @@ export default function SkillsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {skills.map((group, gi) => (
           <FadeIn key={group.category} delay={gi * 80}>
-            <div className="border border-neutral-800 bg-neutral-900/20 p-5 h-full">
+            <div
+              className="border border-neutral-800 bg-neutral-900/20 p-5 h-full"
+              data-array-item="true"
+              data-array-path="skills"
+              data-array-index={gi}
+            >
               <h2
                 className="font-mono text-xs font-bold text-accent-400 tracking-widest mb-4"
                 data-editable="true"

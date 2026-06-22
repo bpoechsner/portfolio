@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import content from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
+import ModelPreview from "@/components/ModelPreview";
+import { isPreviewable } from "@/lib/modelFormats";
 
 export const metadata: Metadata = {
   title: "3D Files",
@@ -20,6 +22,22 @@ export default function ThreeDFilesPage() {
         titlePath="pages.files.title"
         subtitlePath="models.description"
       />
+
+      {/* Gallery URLs — only visible in edit mode */}
+      <div className="edit-only flex flex-wrap gap-x-6 gap-y-1 mb-6">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] text-neutral-700 tracking-widest">PRINTABLES</span>
+          <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="models.printables_url">
+            {models.printables_url || "paste URL here"}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] text-neutral-700 tracking-widest">THANGS</span>
+          <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="models.thangs_url">
+            {models.thangs_url || "paste URL here"}
+          </span>
+        </div>
+      </div>
 
       {/* External gallery links */}
       {(models.printables_url || models.thangs_url) && (
@@ -58,29 +76,39 @@ export default function ThreeDFilesPage() {
         {models.files.map((file, i) => (
           <div
             key={file.id}
-            className="group border border-neutral-800 bg-neutral-900/30 hover:border-amber-500/40 card-glow transition-all flex flex-col"
+            className="group relative border border-neutral-800 bg-neutral-900/30 hover:border-amber-500/40 card-glow transition-all flex flex-col"
+            data-array-item="true"
+            data-array-path="models.files"
+            data-array-index={i}
+            data-id-field="id"
           >
-            {/* Visual placeholder */}
+            {/* Visual placeholder / live 3D preview */}
             <div className="aspect-square bg-[#0f0f0f] border-b border-neutral-800 flex items-center justify-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-grid opacity-50" />
-              <div className="relative z-10 flex flex-col items-center gap-3">
-                <svg
-                  className="w-12 h-12 text-neutral-800 group-hover:text-neutral-700 transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={0.7}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
-                  />
-                </svg>
-                <span className="font-mono text-[10px] text-neutral-700 border border-neutral-800 px-2 py-0.5 tracking-widest">
-                  {file.format}
-                </span>
-              </div>
+              {file.download_url && isPreviewable(file.format) ? (
+                <ModelPreview itemId={file.id} url={file.download_url} format={file.format} />
+              ) : (
+                <>
+                  <div className="absolute inset-0 bg-grid opacity-50" />
+                  <div className="relative z-10 flex flex-col items-center gap-3">
+                    <svg
+                      className="w-12 h-12 text-neutral-800 group-hover:text-neutral-700 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={0.7}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                      />
+                    </svg>
+                    <span className="font-mono text-[10px] text-neutral-700 border border-neutral-800 px-2 py-0.5 tracking-widest">
+                      {file.format}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Info */}
@@ -100,6 +128,53 @@ export default function ThreeDFilesPage() {
               >
                 {file.project}
               </p>
+
+              <div className="edit-only flex flex-col gap-1.5 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-12 shrink-0">
+                    VERSION
+                  </span>
+                  <span
+                    className="font-mono text-[10px] text-neutral-600"
+                    data-editable="true"
+                    data-path={`models.files.${i}.version`}
+                  >
+                    {file.version || "version"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-12 shrink-0">
+                    FORMAT
+                  </span>
+                  <span
+                    className="font-mono text-[10px] text-neutral-600"
+                    data-editable="true"
+                    data-path={`models.files.${i}.format`}
+                  >
+                    {file.format || "STL"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-12 shrink-0">
+                    FILE
+                  </span>
+                  <span
+                    className="font-mono text-[10px] text-neutral-600 truncate"
+                    data-editable="true"
+                    data-path={`models.files.${i}.download_url`}
+                  >
+                    {file.download_url || "paste a URL, or upload below"}
+                  </span>
+                </div>
+                <button
+                  data-model-upload-target={`models.files.${i}.download_url`}
+                  data-model-upload-format-target={`models.files.${i}.format`}
+                  data-model-upload-item={file.id}
+                  className="self-start font-mono text-[9px] text-amber-400 border border-amber-500/30 px-2 py-0.5 hover:border-amber-500/60"
+                >
+                  Upload model (STL/GLB/OBJ/3MF)
+                </button>
+              </div>
 
               <div className="flex items-center justify-between mt-auto pt-3 border-t border-neutral-800/50">
                 <span className="font-mono text-[10px] text-neutral-700">{file.version}</span>

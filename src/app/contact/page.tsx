@@ -76,6 +76,13 @@ export default function ContactPage() {
                   LinkedIn
                 </span>
               </a>
+              <span
+                className="edit-only font-mono text-[10px] text-neutral-600 block mt-1"
+                data-editable="true"
+                data-path="meta.linkedin"
+              >
+                {meta.linkedin}
+              </span>
 
               <a
                 href={meta.github}
@@ -92,6 +99,13 @@ export default function ContactPage() {
                   GitHub
                 </span>
               </a>
+              <span
+                className="edit-only font-mono text-[10px] text-neutral-600 block mt-1"
+                data-editable="true"
+                data-path="meta.github"
+              >
+                {meta.github}
+              </span>
             </div>
           </div>
 

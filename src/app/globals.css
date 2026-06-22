@@ -142,3 +142,20 @@
   -webkit-text-fill-color: unset;
   color: rgb(var(--accent-400));
 }
+
+/* ── Toggleable rows (nav links, availability badge) ─────────────────────
+   Hidden entries are skipped outside edit mode; while editing they're
+   shown dimmed so they can be re-enabled, edited, or removed.            */
+
+.cms-hidden {
+  display: none;
+}
+
+.edit-mode .cms-hidden {
+  display: inline-flex;
+  opacity: 0.35;
+}
+
+.edit-mode [data-cycle-target] {
+  cursor: pointer;
+}

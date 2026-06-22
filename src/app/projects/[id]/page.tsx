@@ -59,13 +59,25 @@ export default async function ProjectDetailPage({
       {/* Header */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[11px] text-neutral-600">{project.category}</span>
+          <span
+            className="font-mono text-[11px] text-neutral-600"
+            data-editable="true"
+            data-path={`projects.${idx}.category`}
+          >
+            {project.category}
+          </span>
           <span
             className={`font-mono text-[9px] tracking-widest border px-2 py-0.5 ${
               statusStyles[project.status] ?? "text-neutral-500 border-neutral-700"
             }`}
+            data-cycle-target={`projects.${idx}.status`}
+            data-cycle-values="In Progress|Complete|Planned"
+            title="Click to cycle status (edit mode)"
           >
             {project.status.toUpperCase()}
+          </span>
+          <span className="hidden" data-editable="true" data-path={`projects.${idx}.status`}>
+            {project.status}
           </span>
         </div>
 
@@ -87,6 +99,7 @@ export default async function ProjectDetailPage({
       </div>
 
       {/* Cover image */}
+      <div className="project-cover-block">
       {project.image ? (
         <div className="mb-10 border border-neutral-800 overflow-hidden">
           <img
@@ -104,14 +117,23 @@ export default async function ProjectDetailPage({
         </div>
       )}
 
-      {/* Image URL — only visible in edit mode */}
-      <span
-        className="edit-only font-mono text-[11px] text-neutral-600 block mb-8 -mt-6"
-        data-editable="true"
-        data-path={`projects.${idx}.image`}
-      >
-        {project.image || "paste image URL here"}
-      </span>
+      {/* Image URL / upload — only visible in edit mode */}
+      <div className="edit-only flex items-center gap-3 mb-8 -mt-6">
+        <span
+          className="font-mono text-[11px] text-neutral-600"
+          data-editable="true"
+          data-path={`projects.${idx}.image`}
+        >
+          {project.image || "paste image URL here"}
+        </span>
+        <button
+          data-upload-target={`projects.${idx}.image`}
+          className="shrink-0 font-mono text-[10px] text-accent-400 border border-accent-500/30 px-2.5 py-1 hover:border-accent-500/60"
+        >
+          Upload image
+        </button>
+      </div>
+      </div>
 
       {/* Body + Highlights grid */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 mb-12">
@@ -212,6 +234,24 @@ export default async function ProjectDetailPage({
           )}
         </div>
       )}
+
+      {/* Link URLs — only visible in edit mode */}
+      <div className="edit-only flex flex-col gap-1.5 mt-6 pt-6 border-t border-neutral-900">
+        {(["github", "demo", "files"] as const).map((key) => (
+          <div key={key} className="flex items-center gap-3">
+            <span className="font-mono text-[10px] text-neutral-700 tracking-widest w-14 shrink-0">
+              {key.toUpperCase()}
+            </span>
+            <span
+              className="font-mono text-[11px] text-neutral-500 truncate"
+              data-editable="true"
+              data-path={`projects.${idx}.links.${key}`}
+            >
+              {project.links[key] || `paste ${key} URL here`}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

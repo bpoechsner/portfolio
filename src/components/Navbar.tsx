@@ -53,23 +53,51 @@ export default function Navbar({ logo, links }: NavbarProps) {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
-          {visibleLinks.map((link) => {
+          {links.map((link, i) => {
             const active = pathname === link.href;
             return (
-              <Link
+              <div
                 key={link.href}
-                href={link.href}
-                className={`relative font-mono text-[11px] tracking-[0.16em] transition-colors ${
-                  active
-                    ? "text-accent-400"
-                    : "text-neutral-500 hover:text-neutral-200"
-                }`}
+                className={`relative flex items-center gap-1.5 ${link.visible ? "" : "cms-hidden"}`}
+                data-array-item="true"
+                data-array-path="nav.links"
+                data-array-index={i}
               >
-                {link.label.toUpperCase()}
-                {active && (
-                  <span className="absolute -bottom-[18px] left-0 right-0 h-px bg-accent-500" />
-                )}
-              </Link>
+                <Link
+                  href={link.href}
+                  className={`relative font-mono text-[11px] tracking-[0.16em] transition-colors ${
+                    active
+                      ? "text-accent-400"
+                      : "text-neutral-500 hover:text-neutral-200"
+                  }`}
+                >
+                  {link.label.toUpperCase()}
+                  {active && (
+                    <span className="absolute -bottom-[18px] left-0 right-0 h-px bg-accent-500" />
+                  )}
+                </Link>
+
+                {/* Edit-mode-only controls */}
+                <span
+                  className="edit-only font-mono text-[9px] text-neutral-600"
+                  data-editable="true"
+                  data-path={`nav.links.${i}.href`}
+                >
+                  {link.href}
+                </span>
+                <span className="hidden" data-editable="true" data-path={`nav.links.${i}.visible`}>
+                  {String(link.visible)}
+                </span>
+                <button
+                  className="edit-only text-[11px] text-neutral-600 hover:text-accent-400"
+                  data-toggle-target={`nav.links.${i}.visible`}
+                  data-toggle-row="[data-array-path='nav.links']"
+                  data-on={String(link.visible)}
+                  title="Toggle visible"
+                >
+                  {link.visible ? "👁" : "🚫"}
+                </button>
+              </div>
             );
           })}
         </div>

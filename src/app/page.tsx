@@ -28,7 +28,10 @@ export default function Home() {
           >
             {hero.subheadline}
           </span>
-          {hero.availability.visible && (
+          <span
+            className={`relative inline-flex items-center gap-1.5 ${hero.availability.visible ? "" : "cms-hidden"}`}
+            data-toggle-row="span"
+          >
             <span
               className="font-mono text-[10px] text-green-400 border border-green-500/30 bg-green-500/5 px-2 py-0.5 tracking-wide"
               data-editable="true"
@@ -36,7 +39,19 @@ export default function Home() {
             >
               {hero.availability.text}
             </span>
-          )}
+            <span className="hidden" data-editable="true" data-path="hero.availability.visible">
+              {String(hero.availability.visible)}
+            </span>
+            <button
+              className="edit-only text-[11px] text-neutral-600 hover:text-accent-400"
+              data-toggle-target="hero.availability.visible"
+              data-toggle-row="span"
+              data-on={String(hero.availability.visible)}
+              title="Toggle visible"
+            >
+              {hero.availability.visible ? "👁" : "🚫"}
+            </button>
+          </span>
         </div>
 
         {/* Headline */}
@@ -102,11 +117,40 @@ export default function Home() {
           </Link>
         </div>
 
+        {/* Resume / meta link URLs — only visible in edit mode */}
+        <div className="edit-only flex flex-wrap gap-x-6 gap-y-1 mb-8">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] text-neutral-700 tracking-widest">RESUME</span>
+            <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="meta.resume">
+              {meta.resume}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] text-neutral-700 tracking-widest">LINKEDIN</span>
+            <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="meta.linkedin">
+              {meta.linkedin}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] text-neutral-700 tracking-widest">GITHUB</span>
+            <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="meta.github">
+              {meta.github}
+            </span>
+          </div>
+        </div>
+
         {/* Stats bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 border-t border-neutral-800/60 pt-8">
           {stats.map((stat) => (
             <div key={stat.label}>
-              <div className="font-mono text-2xl font-bold text-accent-400 mb-1">{stat.value}</div>
+              <div
+                className="font-mono text-2xl font-bold text-accent-400 mb-1"
+                {...(stat.label === "GPA"
+                  ? { "data-editable": "true", "data-path": "meta.gpa" }
+                  : {})}
+              >
+                {stat.value}
+              </div>
               <div className="font-mono text-[10px] text-neutral-700 tracking-[0.2em]">
                 {stat.label.toUpperCase()}
               </div>

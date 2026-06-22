@@ -31,19 +31,33 @@ export default function Footer() {
           © {new Date().getFullYear()} {meta.name}
         </p>
 
-        <div className="flex gap-6">
+        <div className="flex flex-wrap gap-6">
           {socials.map((social, i) => (
-            <a
+            <div
               key={social.label}
-              href={social.url}
-              target={social.url.startsWith("http") ? "_blank" : undefined}
-              rel={social.url.startsWith("http") ? "noopener noreferrer" : undefined}
-              className="font-mono text-[11px] text-neutral-600 hover:text-accent-400 transition-colors tracking-widest"
-              data-editable="true"
-              data-path={`socials.${i}.label`}
+              className="flex flex-col items-center sm:items-start gap-1 relative"
+              data-array-item="true"
+              data-array-path="socials"
+              data-array-index={i}
             >
-              {social.label.toUpperCase()}
-            </a>
+              <a
+                href={social.url}
+                target={social.url.startsWith("http") ? "_blank" : undefined}
+                rel={social.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="font-mono text-[11px] text-neutral-600 hover:text-accent-400 transition-colors tracking-widest"
+                data-editable="true"
+                data-path={`socials.${i}.label`}
+              >
+                {social.label.toUpperCase()}
+              </a>
+              <span
+                className="edit-only font-mono text-[9px] text-neutral-700 truncate max-w-[160px]"
+                data-editable="true"
+                data-path={`socials.${i}.url`}
+              >
+                {social.url || "paste URL here"}
+              </span>
+            </div>
           ))}
         </div>
       </div>

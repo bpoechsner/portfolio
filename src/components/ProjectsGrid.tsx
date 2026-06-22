@@ -18,7 +18,13 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
     <div className="projects-grid grid grid-cols-1 md:grid-cols-2 gap-5">
       {projects.map((project, idx) => (
         <FadeIn key={project.id} delay={idx * 80}>
-          <div className="group relative border border-neutral-800 bg-neutral-900/40 card-glow transition-all flex flex-col h-full">
+          <div
+            className="group relative border border-neutral-800 bg-neutral-900/40 card-glow transition-all flex flex-col h-full project-cover-block"
+            data-array-item="true"
+            data-array-path="projects"
+            data-array-index={idx}
+            data-id-field="id"
+          >
             {/* Cover image */}
             {project.image ? (
               <div className="aspect-video overflow-hidden border-b border-neutral-800">
@@ -44,14 +50,22 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
               </div>
             )}
 
-            {/* Image URL — only visible in edit mode */}
-            <span
-              className="edit-only font-mono text-[10px] text-neutral-600 px-5 pt-2 block truncate"
-              data-editable="true"
-              data-path={`projects.${idx}.image`}
-            >
-              {project.image || "paste image URL here"}
-            </span>
+            {/* Image URL / upload — only visible in edit mode */}
+            <div className="edit-only flex items-center gap-2 px-5 pt-2">
+              <span
+                className="font-mono text-[10px] text-neutral-600 block truncate"
+                data-editable="true"
+                data-path={`projects.${idx}.image`}
+              >
+                {project.image || "paste image URL here"}
+              </span>
+              <button
+                data-upload-target={`projects.${idx}.image`}
+                className="shrink-0 font-mono text-[9px] text-accent-400 border border-accent-500/30 px-2 py-0.5 hover:border-accent-500/60"
+              >
+                Upload image
+              </button>
+            </div>
 
             {/* Card body */}
             <div className="p-6 flex flex-col flex-1">
@@ -60,8 +74,14 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
                 className={`self-start font-mono text-[9px] tracking-widest border px-2 py-0.5 mb-3 ${
                   statusStyles[project.status] ?? "text-neutral-500 border-neutral-700"
                 }`}
+                data-cycle-target={`projects.${idx}.status`}
+                data-cycle-values="In Progress|Complete|Planned"
+                title="Click to cycle status (edit mode)"
               >
                 {project.status.toUpperCase()}
+              </span>
+              <span className="hidden" data-editable="true" data-path={`projects.${idx}.status`}>
+                {project.status}
               </span>
 
               {/* Category */}
@@ -143,6 +163,24 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
                 >
                   DETAILS →
                 </Link>
+              </div>
+
+              {/* Link URLs — only visible in edit mode */}
+              <div className="edit-only flex flex-col gap-1 mt-3 pt-3 border-t border-neutral-800/60">
+                {(["github", "demo", "files"] as const).map((key) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-12 shrink-0">
+                      {key.toUpperCase()}
+                    </span>
+                    <span
+                      className="font-mono text-[10px] text-neutral-600 truncate"
+                      data-editable="true"
+                      data-path={`projects.${idx}.links.${key}`}
+                    >
+                      {project.links[key] || `paste ${key} URL here`}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

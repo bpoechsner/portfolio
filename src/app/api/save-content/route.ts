@@ -25,6 +25,16 @@ function setAtPath(obj: unknown, dotPath: string, value: unknown): void {
   cur[keys[keys.length - 1]] = value;
 }
 
+function getAtPath(obj: unknown, dotPath: string): unknown {
+  const keys = dotPath.split(".");
+  let cur: unknown = obj;
+  for (const k of keys) {
+    if (cur == null) return undefined;
+    cur = (cur as Record<string, unknown>)[k];
+  }
+  return cur;
+}
+
 export async function POST(req: NextRequest) {
   if (!authorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,6 +43,7 @@ export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     scalars?: Record<string, string>;
     arrays?: Record<string, string[]>;
+    arrayLengths?: Record<string, number>;
     edits?: Record<string, string>;
   };
 
@@ -47,6 +58,17 @@ export async function POST(req: NextRequest) {
 
   const scalars = body.scalars ?? body.edits ?? {};
   const arrays = body.arrays ?? {};
+  const arrayLengths = body.arrayLengths ?? {};
+
+  // Resize object-arrays (add/remove whole entries) before scalars fill in field values,
+  // so the slot exists for nested paths like "projects.3.title" to land in.
+  for (const [dotPath, len] of Object.entries(arrayLengths)) {
+    const arr = getAtPath(content, dotPath);
+    if (Array.isArray(arr) && Number.isFinite(len)) {
+      while (arr.length < len) arr.push({});
+      while (arr.length > len) arr.pop();
+    }
+  }
 
   for (const [dotPath, value] of Object.entries(scalars)) {
     try { setAtPath(content, dotPath, parseScalar(value)); } catch { /* skip bad paths */ }
