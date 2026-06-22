@@ -125,6 +125,12 @@ export default async function Home() {
             <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="meta.resume">
               {meta.resume}
             </span>
+            <button
+              data-resume-upload-target="meta.resume"
+              className="shrink-0 font-mono text-[9px] text-accent-400 border border-accent-500/30 px-2 py-0.5 hover:border-accent-500/60"
+            >
+              Upload PDF
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-[9px] text-neutral-700 tracking-widest">LINKEDIN</span>

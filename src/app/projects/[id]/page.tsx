@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getContent } from "@/lib/content";
 
@@ -101,11 +102,13 @@ export default async function ProjectDetailPage({
       {/* Cover image */}
       <div className="project-cover-block">
       {project.image ? (
-        <div className="mb-10 border border-neutral-800 overflow-hidden">
-          <img
+        <div className="relative aspect-video mb-10 border border-neutral-800 overflow-hidden">
+          <Image
             src={project.image}
             alt={project.title}
-            className="w-full object-cover"
+            fill
+            sizes="(min-width: 1024px) 896px, 100vw"
+            className="object-cover"
           />
         </div>
       ) : (

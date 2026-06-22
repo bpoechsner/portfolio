@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Project } from "@/lib/content";
 import FadeIn from "./FadeIn";
 
@@ -27,11 +28,13 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
           >
             {/* Cover image */}
             {project.image ? (
-              <div className="aspect-video overflow-hidden border-b border-neutral-800">
-                <img
+              <div className="relative aspect-video overflow-hidden border-b border-neutral-800">
+                <Image
                   src={project.image}
                   alt={project.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
             ) : (

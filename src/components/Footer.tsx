@@ -62,6 +62,33 @@ export default async function Footer() {
           ))}
         </div>
       </div>
+
+      {/* SEO settings — only visible in edit mode */}
+      <div className="edit-only max-w-7xl mx-auto px-6 lg:px-8 mt-8 pt-8 border-t border-neutral-900 flex flex-col gap-2">
+        <div className="font-mono text-[9px] text-neutral-700 tracking-[0.3em]">
+          SEO (PAGE TITLE / DESCRIPTION)
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-16 shrink-0">TITLE</span>
+          <span
+            className="font-mono text-[11px] text-neutral-500"
+            data-editable="true"
+            data-path="seo.title"
+          >
+            {content.seo.title}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-16 shrink-0">DESC</span>
+          <span
+            className="font-mono text-[11px] text-neutral-500"
+            data-editable="true"
+            data-path="seo.description"
+          >
+            {content.seo.description}
+          </span>
+        </div>
+      </div>
     </footer>
   );
 }

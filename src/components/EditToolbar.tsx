@@ -329,6 +329,55 @@ function injectUploadControls() {
   });
 }
 
+// ── Resume PDF upload ────────────────────────────────────────────────────
+
+function injectResumeUploadControls() {
+  document.querySelectorAll<HTMLButtonElement>("[data-resume-upload-target]").forEach((btn) => {
+    if (btn.dataset.uploadBound) return;
+    btn.dataset.uploadBound = "true";
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf";
+    input.style.display = "none";
+    input.dataset.editInjected = "true";
+    btn.insertAdjacentElement("afterend", input);
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      input.click();
+    });
+
+    input.addEventListener("change", async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const originalLabel = btn.textContent;
+      btn.textContent = "Uploading…";
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload-resume", {
+          method: "POST",
+          headers: { "x-edit-token": sessionStorage.getItem("editToken") ?? "" },
+          body: fd,
+        });
+        const data = (await res.json()) as { ok?: boolean; url?: string; error?: string };
+        if (res.ok && data.url) {
+          const target = btn.getAttribute("data-resume-upload-target")!;
+          const span = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(target)}"]`);
+          if (span) span.textContent = data.url;
+          btn.textContent = originalLabel;
+        } else {
+          btn.textContent = data.error ?? "Upload failed";
+        }
+      } catch {
+        btn.textContent = "Upload failed";
+      }
+      input.value = "";
+    });
+  });
+}
+
 // ── Collect edits from DOM ─────────────────────────────────────────────────
 
 function collectEdits(): { scalars: Record<string, string>; arrays: Record<string, string[]> } {
@@ -435,6 +484,9 @@ export default function EditToolbar() {
   const [status, setStatus] = useState<{ text: string; ok: boolean } | null>(null);
   const [theme, setTheme] = useState("amber");
   const [columns, setColumns] = useState(3);
+  const [showHistory, setShowHistory] = useState(false);
+  const [versions, setVersions] = useState<{ pathname: string; uploadedAt: string }[]>([]);
+  const [historyBusy, setHistoryBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
 
@@ -457,6 +509,7 @@ export default function EditToolbar() {
       injectCycleControls();
       injectUploadControls();
       injectModelUploadControls();
+      injectResumeUploadControls();
     }
     if (mode === "idle") {
       cleanupArrayControls();
@@ -558,6 +611,59 @@ export default function EditToolbar() {
       setStatus({ text: "Network error", ok: false });
     }
     setMode("editing");
+  };
+
+  const handleToggleHistory = async () => {
+    if (showHistory) {
+      setShowHistory(false);
+      return;
+    }
+    setHistoryBusy(true);
+    try {
+      const res = await fetch("/api/content-versions", {
+        headers: { "x-edit-token": token() },
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        versions?: { pathname: string; uploadedAt: string }[];
+        error?: string;
+      };
+      if (res.ok && data.versions) {
+        setVersions(data.versions);
+        setShowHistory(true);
+      } else {
+        setStatus({ text: `Could not load history: ${data.error ?? "unknown"}`, ok: false });
+      }
+    } catch {
+      setStatus({ text: "Network error", ok: false });
+    }
+    setHistoryBusy(false);
+  };
+
+  const handleRestore = async (pathname: string) => {
+    if (!window.confirm("Restore this version? Current content will be saved as a new history entry first, so this can be undone too.")) {
+      return;
+    }
+    setHistoryBusy(true);
+    try {
+      const res = await fetch("/api/restore-version", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-edit-token": token(),
+        },
+        body: JSON.stringify({ pathname }),
+      });
+      if (res.ok) {
+        window.location.reload();
+        return;
+      }
+      const data = (await res.json()) as { error?: string };
+      setStatus({ text: `Restore failed: ${data.error ?? "unknown"}`, ok: false });
+    } catch {
+      setStatus({ text: "Network error", ok: false });
+    }
+    setHistoryBusy(false);
   };
 
   const handleExit = () => {
@@ -711,6 +817,15 @@ export default function EditToolbar() {
             </button>
 
             <button
+              onClick={handleToggleHistory}
+              disabled={busy || historyBusy}
+              title="View and restore previous saved versions"
+              className="flex items-center gap-1.5 border border-neutral-700 hover:border-accent-500/60 disabled:border-neutral-800 text-neutral-400 hover:text-accent-400 disabled:text-neutral-700 font-mono text-[11px] tracking-widest px-4 py-2 transition-colors"
+            >
+              {historyBusy ? <Spinner /> : "HISTORY"}
+            </button>
+
+            <button
               onClick={handleExit}
               disabled={busy}
               title="Exit edit mode"
@@ -719,6 +834,34 @@ export default function EditToolbar() {
               ✕
             </button>
           </div>
+
+          {showHistory && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-h-80 overflow-y-auto bg-neutral-950 border border-accent-500/25 shadow-2xl p-3">
+              <div className="font-mono text-[10px] text-neutral-600 tracking-widest mb-2">
+                RECENT VERSIONS
+              </div>
+              {versions.length === 0 ? (
+                <p className="font-mono text-[11px] text-neutral-600">No saved history yet.</p>
+              ) : (
+                <ul className="flex flex-col gap-1.5">
+                  {versions.map((v) => (
+                    <li key={v.pathname} className="flex items-center justify-between gap-3">
+                      <span className="font-mono text-[11px] text-neutral-400">
+                        {new Date(v.uploadedAt).toLocaleString()}
+                      </span>
+                      <button
+                        onClick={() => handleRestore(v.pathname)}
+                        disabled={historyBusy}
+                        className="shrink-0 font-mono text-[10px] text-accent-400 border border-accent-500/30 px-2 py-0.5 hover:border-accent-500/60 disabled:opacity-40"
+                      >
+                        Restore
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       )}
     </>

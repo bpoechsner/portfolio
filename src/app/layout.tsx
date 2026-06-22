@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,6 +9,8 @@ import ThemeApplier from "@/components/ThemeApplier";
 import { getContent } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -59,6 +62,7 @@ export default async function RootLayout({
         <main className="min-h-screen">{children}</main>
         <Footer />
         <EditToolbar />
+        <Analytics />
       </body>
     </html>
   );
