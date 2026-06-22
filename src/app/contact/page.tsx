@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
 import ContactForm from "@/components/ContactForm";
 
@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   title: "Contact",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const content = await getContent();
   const { contact, meta } = content;
 
   return (

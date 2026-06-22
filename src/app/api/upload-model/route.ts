@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
+import { put } from "@vercel/blob";
 import path from "path";
 
 function authorized(req: NextRequest): boolean {
@@ -34,15 +34,16 @@ export async function POST(req: NextRequest) {
     .slice(0, 60);
   const filename = `${Date.now()}-${safeBase}${ext}`;
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  fs.mkdirSync(uploadsDir, { recursive: true });
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  fs.writeFileSync(path.join(uploadsDir, filename), buffer);
-
-  return NextResponse.json({
-    ok: true,
-    url: `/uploads/${filename}`,
-    format: ext.slice(1).toUpperCase(),
-  });
+  try {
+    const blob = await put(`uploads/${filename}`, file, {
+      access: "public",
+      addRandomSuffix: false,
+    });
+    return NextResponse.json({ ok: true, url: blob.url, format: ext.slice(1).toUpperCase() });
+  } catch (err) {
+    return NextResponse.json(
+      { error: `Upload failed: ${String((err as Error).message ?? err)}` },
+      { status: 500 }
+    );
+  }
 }

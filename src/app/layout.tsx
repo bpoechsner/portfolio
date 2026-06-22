@@ -5,7 +5,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EditToolbar from "@/components/EditToolbar";
 import ThemeApplier from "@/components/ThemeApplier";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
+
+export const dynamic = "force-dynamic";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,32 +21,36 @@ const jetbrainsMono = JetBrains_Mono({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bpoechsner.vercel.app";
 
-export const metadata: Metadata = {
-  title: {
-    default: content.seo.title,
-    template: `%s | ${content.meta.name}`,
-  },
-  description: content.seo.description,
-  openGraph: {
-    type: "website",
-    url: siteUrl,
-    title: content.seo.title,
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getContent();
+  return {
+    title: {
+      default: content.seo.title,
+      template: `%s | ${content.meta.name}`,
+    },
     description: content.seo.description,
-    siteName: content.meta.name,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: content.seo.title,
-    description: content.seo.description,
-  },
-  metadataBase: new URL(siteUrl),
-};
+    openGraph: {
+      type: "website",
+      url: siteUrl,
+      title: content.seo.title,
+      description: content.seo.description,
+      siteName: content.meta.name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: content.seo.title,
+      description: content.seo.description,
+    },
+    metadataBase: new URL(siteUrl),
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const content = await getContent();
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body className="bg-[#0a0a0a] text-neutral-100 font-sans antialiased">

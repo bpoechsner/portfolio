@@ -533,7 +533,7 @@ export default function EditToolbar() {
         },
         body: JSON.stringify({ scalars, arrays, arrayLengths }),
       });
-      setStatus(res.ok ? { text: "Saved ✓", ok: true } : { text: "Save failed", ok: false });
+      setStatus(res.ok ? { text: "Saved — live now ✓", ok: true } : { text: "Save failed", ok: false });
     } catch {
       setStatus({ text: "Network error", ok: false });
     }
@@ -541,7 +541,7 @@ export default function EditToolbar() {
   };
 
   const handlePublish = async () => {
-    setStatus({ text: "Pushing to GitHub…", ok: true });
+    setStatus({ text: "Backing up to GitHub…", ok: true });
     setMode("publishing");
     try {
       const res = await fetch("/api/publish", {
@@ -551,8 +551,8 @@ export default function EditToolbar() {
       const data = (await res.json()) as { ok?: boolean; error?: string };
       setStatus(
         res.ok
-          ? { text: "Pushed — Vercel deploying ✓", ok: true }
-          : { text: `Git error: ${data.error ?? "unknown"}`, ok: false }
+          ? { text: "Snapshot committed ✓", ok: true }
+          : { text: `Git error (needs local git access): ${data.error ?? "unknown"}`, ok: false }
       );
     } catch {
       setStatus({ text: "Network error", ok: false });
@@ -694,17 +694,18 @@ export default function EditToolbar() {
             <button
               onClick={handlePublish}
               disabled={busy}
+              title="Saves already go live instantly — this just backs up content.json to git (requires running locally)"
               className="flex items-center gap-1.5 border border-neutral-700 hover:border-accent-500/60 disabled:border-neutral-800 text-neutral-400 hover:text-accent-400 disabled:text-neutral-700 font-mono text-[11px] tracking-widest px-4 py-2 transition-colors"
             >
               {mode === "publishing" ? (
-                <><Spinner /> PUSHING</>
+                <><Spinner /> BACKING UP</>
               ) : (
                 <>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  PUBLISH
+                  BACK UP
                 </>
               )}
             </button>

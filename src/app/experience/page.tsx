@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
 import FadeIn from "@/components/FadeIn";
 
@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   title: "Experience",
 };
 
-export default function ExperiencePage() {
+export default async function ExperiencePage() {
+  const content = await getContent();
   const { experience, pages } = content;
   const pg = pages.experience;
 

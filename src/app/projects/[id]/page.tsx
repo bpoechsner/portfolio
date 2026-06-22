@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 
-export function generateStaticParams() {
-  return content.projects.map((p) => ({ id: p.id }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -13,6 +11,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
+  const content = await getContent();
   const project = content.projects.find((p) => p.id === id);
   return {
     title: project?.title ?? "Project",
@@ -31,6 +30,7 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const content = await getContent();
   const idx = content.projects.findIndex((p) => p.id === id);
   if (idx === -1) notFound();
   const project = content.projects[idx];

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { getContent, saveContent } from "@/lib/content";
 
 function authorized(req: NextRequest): boolean {
   const token = req.headers.get("x-edit-token");
@@ -47,14 +46,7 @@ export async function POST(req: NextRequest) {
     edits?: Record<string, string>;
   };
 
-  const contentPath = path.join(process.cwd(), "content.json");
-
-  let content: unknown;
-  try {
-    content = JSON.parse(fs.readFileSync(contentPath, "utf-8"));
-  } catch {
-    return NextResponse.json({ error: "Could not read content.json" }, { status: 500 });
-  }
+  const content: unknown = await getContent();
 
   const scalars = body.scalars ?? body.edits ?? {};
   const arrays = body.arrays ?? {};
@@ -78,9 +70,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    fs.writeFileSync(contentPath, JSON.stringify(content, null, 2) + "\n");
+    await saveContent(content as Parameters<typeof saveContent>[0]);
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Could not write content.json" }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json(
+      { error: `Could not save content: ${String((err as Error).message ?? err)}` },
+      { status: 500 }
+    );
   }
 }

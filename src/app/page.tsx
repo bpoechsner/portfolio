@@ -1,7 +1,8 @@
 import Link from "next/link";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 
-export default function Home() {
+export default async function Home() {
+  const content = await getContent();
   const { meta, hero, projects, experience } = content;
 
   const stats = [

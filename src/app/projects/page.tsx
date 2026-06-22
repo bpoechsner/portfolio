@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
 import ProjectsGrid from "@/components/ProjectsGrid";
 
@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   title: "Projects",
 };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const content = await getContent();
   const { pages } = content;
   const pg = pages.projects;
 

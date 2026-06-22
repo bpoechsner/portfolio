@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
 import FadeIn from "@/components/FadeIn";
 
@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   title: "Skills",
 };
 
-export default function SkillsPage() {
+export default async function SkillsPage() {
+  const content = await getContent();
   const { skills, pages } = content;
   const pg = pages.skills;
 

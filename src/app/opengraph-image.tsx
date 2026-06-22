@@ -1,12 +1,13 @@
 import { ImageResponse } from "next/og";
-import content from "@/lib/content";
+import staticContent, { getContent } from "@/lib/content";
 
 export const runtime = "edge";
-export const alt = `${content.meta.name} — ${content.meta.title}`;
+export const alt = `${staticContent.meta.name} — ${staticContent.meta.title}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OGImage() {
+export default async function OGImage() {
+  const content = await getContent();
   return new ImageResponse(
     (
       <div

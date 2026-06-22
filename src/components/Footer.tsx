@@ -1,7 +1,8 @@
 import Link from "next/link";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 
-export default function Footer() {
+export default async function Footer() {
+  const content = await getContent();
   const { meta, footer, socials } = content;
 
   return (

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import content from "@/lib/content";
+import { getContent } from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
 import ModelPreview from "@/components/ModelPreview";
 import { isPreviewable } from "@/lib/modelFormats";
@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   title: "3D Files",
 };
 
-export default function ThreeDFilesPage() {
+export default async function ThreeDFilesPage() {
+  const content = await getContent();
   const { models, pages } = content;
   const pg = pages.files;
 
