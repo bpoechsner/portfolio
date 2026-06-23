@@ -164,6 +164,22 @@ function attachRemoveButton(item: HTMLElement, arrayPath: string) {
   item.appendChild(del);
 }
 
+// Finds the lowest common ancestor of every item in the group. Items are
+// sometimes nested inside other wrappers (e.g. FadeIn's animation div), so
+// inserting the "+ add" button as a sibling of the last item can bury it
+// inside a wrapper that's still mid-animation (opacity:0) or, in a CSS grid,
+// stretch it to fill an entire (huge) auto-sized row. Appending it to the
+// shared container instead makes it a normal, always-visible grid/flex item.
+function findCommonContainer(items: HTMLElement[]): HTMLElement {
+  let common: HTMLElement = items[0].parentElement ?? document.body;
+  for (const item of items) {
+    while (!common.contains(item)) {
+      common = common.parentElement ?? document.body;
+    }
+  }
+  return common;
+}
+
 function injectObjectArrayControls() {
   const groups = new Map<string, HTMLElement[]>();
   document.querySelectorAll<HTMLElement>("[data-array-item][data-array-path]").forEach((el) => {
@@ -177,15 +193,19 @@ function injectObjectArrayControls() {
     els.forEach((el) => attachRemoveButton(el, arrayPath));
 
     const last = els[els.length - 1];
-    if (!last || last.parentElement?.querySelector('[data-role="add-item"]')) return;
+    if (!last) return;
+    const container = findCommonContainer(els);
+    if (container.querySelector(`[data-role="add-item"][data-for-path="${escapeAttr(arrayPath)}"]`)) return;
 
     const add = document.createElement("button");
     add.dataset.editInjected = "true";
     add.dataset.role = "add-item";
+    add.dataset.forPath = arrayPath;
     add.title = "Duplicate the last entry — then edit the copy";
     add.textContent = "+ add entry";
     add.style.cssText =
-      "display:block;margin:10px 0;padding:6px 12px;font-size:10px;font-family:monospace;letter-spacing:.1em;" +
+      "display:block;align-self:start;justify-self:start;height:fit-content;width:fit-content;flex-shrink:0;" +
+      "margin:10px 0;padding:6px 12px;font-size:10px;font-family:monospace;letter-spacing:.1em;" +
       "color:rgb(var(--accent-400));border:1px dashed rgb(var(--accent-500)/0.4);" +
       "background:transparent;cursor:pointer;";
 
@@ -222,12 +242,12 @@ function injectObjectArrayControls() {
         n.contentEditable = "true";
       });
 
-      template.insertAdjacentElement("afterend", clone);
+      add.insertAdjacentElement("beforebegin", clone);
       attachRemoveButton(clone, arrayPath);
       injectArrayControls();
     };
 
-    last.insertAdjacentElement("afterend", add);
+    container.appendChild(add);
   });
 }
 
