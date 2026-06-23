@@ -55,6 +55,7 @@ export default async function Footer() {
                 className="edit-only font-mono text-[9px] text-neutral-700 truncate max-w-[160px]"
                 data-editable="true"
                 data-path={`socials.${i}.url`}
+                {...(!social.url ? { "data-placeholder": "true" } : {})}
               >
                 {social.url || "paste URL here"}
               </span>

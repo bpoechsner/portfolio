@@ -59,6 +59,7 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
                 className="font-mono text-[10px] text-neutral-600 block truncate"
                 data-editable="true"
                 data-path={`projects.${idx}.image`}
+                {...(!project.image ? { "data-placeholder": "true" } : {})}
               >
                 {project.image || "paste image URL here"}
               </span>
@@ -179,6 +180,7 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
                       className="font-mono text-[10px] text-neutral-600 truncate"
                       data-editable="true"
                       data-path={`projects.${idx}.links.${key}`}
+                      {...(!project.links[key] ? { "data-placeholder": "true" } : {})}
                     >
                       {project.links[key] || `paste ${key} URL here`}
                     </span>

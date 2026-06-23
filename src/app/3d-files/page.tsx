@@ -28,13 +28,23 @@ export default async function ThreeDFilesPage() {
       <div className="edit-only flex flex-wrap gap-x-6 gap-y-1 mb-6">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[9px] text-neutral-700 tracking-widest">PRINTABLES</span>
-          <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="models.printables_url">
+          <span
+            className="font-mono text-[10px] text-neutral-600"
+            data-editable="true"
+            data-path="models.printables_url"
+            {...(!models.printables_url ? { "data-placeholder": "true" } : {})}
+          >
             {models.printables_url || "paste URL here"}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="font-mono text-[9px] text-neutral-700 tracking-widest">THANGS</span>
-          <span className="font-mono text-[10px] text-neutral-600" data-editable="true" data-path="models.thangs_url">
+          <span
+            className="font-mono text-[10px] text-neutral-600"
+            data-editable="true"
+            data-path="models.thangs_url"
+            {...(!models.thangs_url ? { "data-placeholder": "true" } : {})}
+          >
             {models.thangs_url || "paste URL here"}
           </span>
         </div>
@@ -139,6 +149,7 @@ export default async function ThreeDFilesPage() {
                     className="font-mono text-[10px] text-neutral-600"
                     data-editable="true"
                     data-path={`models.files.${i}.version`}
+                    {...(!file.version ? { "data-placeholder": "true" } : {})}
                   >
                     {file.version || "version"}
                   </span>
@@ -151,6 +162,7 @@ export default async function ThreeDFilesPage() {
                     className="font-mono text-[10px] text-neutral-600"
                     data-editable="true"
                     data-path={`models.files.${i}.format`}
+                    {...(!file.format ? { "data-placeholder": "true" } : {})}
                   >
                     {file.format || "STL"}
                   </span>
@@ -163,6 +175,7 @@ export default async function ThreeDFilesPage() {
                     className="font-mono text-[10px] text-neutral-600 truncate"
                     data-editable="true"
                     data-path={`models.files.${i}.download_url`}
+                    {...(!file.download_url ? { "data-placeholder": "true" } : {})}
                   >
                     {file.download_url || "paste a URL, or upload below"}
                   </span>

@@ -126,6 +126,7 @@ export default async function ProjectDetailPage({
           className="font-mono text-[11px] text-neutral-600"
           data-editable="true"
           data-path={`projects.${idx}.image`}
+          {...(!project.image ? { "data-placeholder": "true" } : {})}
         >
           {project.image || "paste image URL here"}
         </span>
@@ -249,6 +250,7 @@ export default async function ProjectDetailPage({
               className="font-mono text-[11px] text-neutral-500 truncate"
               data-editable="true"
               data-path={`projects.${idx}.links.${key}`}
+              {...(!project.links[key] ? { "data-placeholder": "true" } : {})}
             >
               {project.links[key] || `paste ${key} URL here`}
             </span>

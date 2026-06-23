@@ -220,6 +220,11 @@ function injectObjectArrayControls() {
 
       const clone = template.cloneNode(true) as HTMLElement;
       clone.querySelectorAll("[data-edit-injected]").forEach((n) => n.remove());
+      // cloneNode copies the "already bound" marker but not the actual
+      // listener, so placeholder tracking must be re-attached fresh below.
+      clone.querySelectorAll<HTMLElement>("[data-placeholder-bound]").forEach((n) => {
+        delete n.dataset.placeholderBound;
+      });
 
       const oldIdx = Number(template.dataset.arrayIndex);
       reindexItem(clone, arrayPath, oldIdx, newIndex);
@@ -245,6 +250,7 @@ function injectObjectArrayControls() {
       add.insertAdjacentElement("beforebegin", clone);
       attachRemoveButton(clone, arrayPath);
       injectArrayControls();
+      injectPlaceholderTracking();
     };
 
     container.appendChild(add);
@@ -398,6 +404,25 @@ function injectResumeUploadControls() {
   });
 }
 
+// ── Placeholder fields (e.g. "paste URL here") ──────────────────────────────
+
+// The moment a placeholder field is actually touched, drop its marker so
+// collectEdits treats it as real content from then on (even if cleared back
+// to empty — that's a deliberate empty value, not an untouched placeholder).
+function injectPlaceholderTracking() {
+  document.querySelectorAll<HTMLElement>("[data-editable][data-placeholder]").forEach((el) => {
+    if (el.dataset.placeholderBound) return;
+    el.dataset.placeholderBound = "true";
+    el.addEventListener(
+      "input",
+      () => {
+        el.removeAttribute("data-placeholder");
+      },
+      { once: true }
+    );
+  });
+}
+
 // ── Collect edits from DOM ─────────────────────────────────────────────────
 
 function collectEdits(): { scalars: Record<string, string>; arrays: Record<string, string[]> } {
@@ -405,6 +430,10 @@ function collectEdits(): { scalars: Record<string, string>; arrays: Record<strin
   const arrayItems = new Map<string, string[]>();
 
   document.querySelectorAll<HTMLElement>("[data-editable][data-path]").forEach((el) => {
+    // Still showing its placeholder text (e.g. "paste URL here") and never
+    // touched — skip it rather than saving the placeholder as real data.
+    if (el.hasAttribute("data-placeholder")) return;
+
     const path = el.getAttribute("data-path")!;
     const parts = path.split(".");
     const last = parts[parts.length - 1];
@@ -530,6 +559,7 @@ export default function EditToolbar() {
       injectUploadControls();
       injectModelUploadControls();
       injectResumeUploadControls();
+      injectPlaceholderTracking();
     }
     if (mode === "idle") {
       cleanupArrayControls();
