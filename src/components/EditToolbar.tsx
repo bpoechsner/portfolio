@@ -164,6 +164,79 @@ function attachRemoveButton(item: HTMLElement, arrayPath: string) {
   item.appendChild(del);
 }
 
+// Walks up from `item` to find the direct child of `container` that
+// contains it — i.e. the actual node to relocate when reordering, even if
+// the array-item itself is nested inside another wrapper (e.g. FadeIn).
+function getTopLevelWrapper(item: HTMLElement, container: HTMLElement): HTMLElement {
+  let node = item;
+  while (node.parentElement && node.parentElement !== container) {
+    node = node.parentElement;
+  }
+  return node;
+}
+
+function swapArrayItems(a: HTMLElement, b: HTMLElement, arrayPath: string, container: HTMLElement) {
+  const idxA = Number(a.dataset.arrayIndex);
+  const idxB = Number(b.dataset.arrayIndex);
+  reindexItem(a, arrayPath, idxA, idxB);
+  reindexItem(b, arrayPath, idxB, idxA);
+
+  const wrapA = getTopLevelWrapper(a, container);
+  const wrapB = getTopLevelWrapper(b, container);
+  if (wrapA === wrapB || !wrapA.parentNode || !wrapB.parentNode) return;
+  const marker = document.createComment("swap-marker");
+  wrapA.parentNode.insertBefore(marker, wrapA);
+  wrapB.parentNode.insertBefore(wrapA, wrapB);
+  marker.parentNode!.insertBefore(wrapB, marker);
+  marker.remove();
+}
+
+function attachMoveButtons(item: HTMLElement, arrayPath: string, container: HTMLElement) {
+  if (item.querySelector('[data-role="move-up"]')) return;
+  if (getComputedStyle(item).position === "static") item.style.position = "relative";
+
+  const makeBtn = (role: string, label: string, title: string, rightOffset: number) => {
+    const btn = document.createElement("button");
+    btn.dataset.editInjected = "true";
+    btn.dataset.role = role;
+    btn.title = title;
+    btn.textContent = label;
+    btn.style.cssText =
+      `position:absolute;top:6px;right:${rightOffset}px;z-index:20;width:20px;height:20px;line-height:18px;` +
+      "font-size:11px;font-family:monospace;color:rgb(var(--accent-400));border:1px solid rgb(var(--accent-500)/0.4);" +
+      "background:rgba(10,10,10,0.9);cursor:pointer;";
+    return btn;
+  };
+
+  const currentSorted = () =>
+    Array.from(
+      document.querySelectorAll<HTMLElement>(`[data-array-item][data-array-path="${escapeAttr(arrayPath)}"]`)
+    ).sort((a, b) => Number(a.dataset.arrayIndex) - Number(b.dataset.arrayIndex));
+
+  const up = makeBtn("move-up", "↑", "Move up", 54);
+  up.onmousedown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const current = currentSorted();
+    const idx = current.indexOf(item);
+    if (idx <= 0) return;
+    swapArrayItems(item, current[idx - 1], arrayPath, container);
+  };
+
+  const down = makeBtn("move-down", "↓", "Move down", 30);
+  down.onmousedown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const current = currentSorted();
+    const idx = current.indexOf(item);
+    if (idx === -1 || idx >= current.length - 1) return;
+    swapArrayItems(item, current[idx + 1], arrayPath, container);
+  };
+
+  item.appendChild(up);
+  item.appendChild(down);
+}
+
 // Finds the lowest common ancestor of every item in the group. Items are
 // sometimes nested inside other wrappers (e.g. FadeIn's animation div), so
 // inserting the "+ add" button as a sibling of the last item can bury it
@@ -190,11 +263,14 @@ function injectObjectArrayControls() {
 
   groups.forEach((els, arrayPath) => {
     els.sort((a, b) => Number(a.dataset.arrayIndex) - Number(b.dataset.arrayIndex));
-    els.forEach((el) => attachRemoveButton(el, arrayPath));
+    const container = findCommonContainer(els);
+    els.forEach((el) => {
+      attachRemoveButton(el, arrayPath);
+      attachMoveButtons(el, arrayPath, container);
+    });
 
     const last = els[els.length - 1];
     if (!last) return;
-    const container = findCommonContainer(els);
     if (container.querySelector(`[data-role="add-item"][data-for-path="${escapeAttr(arrayPath)}"]`)) return;
 
     const add = document.createElement("button");
@@ -249,6 +325,7 @@ function injectObjectArrayControls() {
 
       add.insertAdjacentElement("beforebegin", clone);
       attachRemoveButton(clone, arrayPath);
+      attachMoveButtons(clone, arrayPath, container);
       injectArrayControls();
       injectPlaceholderTracking();
     };

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getContent } from "@/lib/content";
+import type { ModelFile } from "@/lib/content";
 import SectionHeader from "@/components/SectionHeader";
 import ModelPreview from "@/components/ModelPreview";
 import { isPreviewable } from "@/lib/modelFormats";
@@ -8,10 +9,27 @@ export const metadata: Metadata = {
   title: "3D Files",
 };
 
+// Files are grouped into folders by their "project" field — there's no
+// separate "folder" concept, renaming a part's project text moves it
+// between folders. Order of folders follows first appearance in the array.
+function groupByProject(files: ModelFile[]) {
+  const groups: { name: string; items: { file: ModelFile; i: number }[] }[] = [];
+  files.forEach((file, i) => {
+    let group = groups.find((g) => g.name === file.project);
+    if (!group) {
+      group = { name: file.project, items: [] };
+      groups.push(group);
+    }
+    group.items.push({ file, i });
+  });
+  return groups;
+}
+
 export default async function ThreeDFilesPage() {
   const content = await getContent();
   const { models, pages } = content;
   const pg = pages.files;
+  const groups = groupByProject(models.files);
 
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-24">
@@ -82,17 +100,39 @@ export default async function ThreeDFilesPage() {
         </div>
       )}
 
-      {/* File grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {models.files.map((file, i) => (
-          <div
-            key={file.id}
-            className="group relative border border-neutral-800 bg-neutral-900/30 hover:border-amber-500/40 card-glow transition-all flex flex-col"
-            data-array-item="true"
-            data-array-path="models.files"
-            data-array-index={i}
-            data-id-field="id"
-          >
+      {/* Files grouped into folders by their "project" field */}
+      <div>
+      {groups.map((group) => (
+        <details key={group.name || "ungrouped"} open className="mb-8 group/folder">
+          <summary className="flex items-center gap-2 mb-4 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+            <svg
+              className="w-4 h-4 text-amber-500/70 shrink-0 transition-transform group-open/folder:rotate-90"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            <svg className="w-4 h-4 text-amber-500/70 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M10 4H4c-1.11 0-2 .89-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" />
+            </svg>
+            <span className="font-mono text-sm font-bold text-neutral-300 tracking-wide">
+              {group.name || "Ungrouped"}
+            </span>
+            <span className="font-mono text-[11px] text-neutral-700">({group.items.length})</span>
+          </summary>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {group.items.map(({ file, i }) => (
+              <div
+                key={file.id}
+                className="group relative border border-neutral-800 bg-neutral-900/30 hover:border-amber-500/40 card-glow transition-all flex flex-col"
+                data-array-item="true"
+                data-array-path="models.files"
+                data-array-index={i}
+                data-id-field="id"
+              >
             {/* Visual placeholder / live 3D preview */}
             <div className="aspect-square bg-[#0f0f0f] border-b border-neutral-800 flex items-center justify-center relative overflow-hidden">
               {file.download_url && isPreviewable(file.format) ? (
@@ -210,7 +250,10 @@ export default async function ThreeDFilesPage() {
               </div>
             </div>
           </div>
-        ))}
+            ))}
+          </div>
+        </details>
+      ))}
       </div>
 
       <div className="mt-8 p-4 border border-neutral-800/50 bg-neutral-900/20">
