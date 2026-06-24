@@ -431,7 +431,10 @@ function injectUploadControls() {
         if (res.ok && data.url) {
           const target = btn.getAttribute("data-upload-target")!;
           const span = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(target)}"]`);
-          if (span) span.textContent = data.url;
+          if (span) {
+            span.textContent = data.url;
+            span.removeAttribute("data-placeholder");
+          }
           const scope = btn.closest<HTMLElement>("[data-array-item]") ?? btn.closest<HTMLElement>(".project-cover-block") ?? document.body;
           const img = scope.querySelector<HTMLImageElement>("img");
           if (img) img.src = data.url;
@@ -603,7 +606,10 @@ function injectResumeUploadControls() {
         if (res.ok && data.url) {
           const target = btn.getAttribute("data-resume-upload-target")!;
           const span = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(target)}"]`);
-          if (span) span.textContent = data.url;
+          if (span) {
+            span.textContent = data.url;
+            span.removeAttribute("data-placeholder");
+          }
           btn.textContent = originalLabel;
         } else {
           btn.textContent = data.error ?? "Upload failed";
@@ -735,10 +741,16 @@ function injectModelUploadControls() {
           const urlTarget = btn.getAttribute("data-model-upload-target")!;
           const formatTarget = btn.getAttribute("data-model-upload-format-target");
           const urlSpan = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(urlTarget)}"]`);
-          if (urlSpan) urlSpan.textContent = data.url;
+          if (urlSpan) {
+            urlSpan.textContent = data.url;
+            urlSpan.removeAttribute("data-placeholder");
+          }
           if (formatTarget) {
             const formatSpan = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(formatTarget)}"]`);
-            if (formatSpan) formatSpan.textContent = data.format;
+            if (formatSpan) {
+              formatSpan.textContent = data.format;
+              formatSpan.removeAttribute("data-placeholder");
+            }
           }
           const itemId = btn.getAttribute("data-model-upload-item");
           if (itemId) {
