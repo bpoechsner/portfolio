@@ -119,15 +119,33 @@ function escapeAttr(v: string) {
   return v.replace(/"/g, '\\"');
 }
 
+// Every attribute that can hold an array-indexed path string (e.g.
+// "models.files.4.download_url") and therefore needs rewriting when an
+// item's index changes — whether from reordering, removing a sibling, or
+// duplicating via "+ add entry".
+const REINDEXABLE_ATTRS = [
+  "data-path",
+  "data-upload-target",
+  "data-model-upload-target",
+  "data-model-upload-format-target",
+  "data-toggle-target",
+  "data-cycle-target",
+  "data-folder-move-target",
+];
+
 function reindexItem(container: HTMLElement, arrayPath: string, oldIndex: number, newIndex: number) {
   if (oldIndex === newIndex) return;
   container.setAttribute("data-array-index", String(newIndex));
   const prefix = `${arrayPath}.${oldIndex}.`;
   const nextPrefix = `${arrayPath}.${newIndex}.`;
-  container.querySelectorAll<HTMLElement>("[data-path]").forEach((el) => {
-    const p = el.getAttribute("data-path")!;
-    if (p.startsWith(prefix)) {
-      el.setAttribute("data-path", nextPrefix + p.slice(prefix.length));
+  const selector = REINDEXABLE_ATTRS.map((a) => `[${a}]`).join(",");
+  const candidates = [container, ...Array.from(container.querySelectorAll<HTMLElement>(selector))];
+  candidates.forEach((el) => {
+    for (const attr of REINDEXABLE_ATTRS) {
+      const val = el.getAttribute(attr);
+      if (val && val.startsWith(prefix)) {
+        el.setAttribute(attr, nextPrefix + val.slice(prefix.length));
+      }
     }
   });
 }
@@ -324,7 +342,20 @@ function injectObjectArrayControls() {
           idSpan.setAttribute("data-path", idPath);
           clone.appendChild(idSpan);
         }
-        idSpan.textContent = `item-${Date.now()}`;
+        const oldId = idSpan.textContent;
+        const newId = `item-${Date.now()}`;
+        idSpan.textContent = newId;
+        // Anything keyed by the old id (e.g. the model-preview mount point
+        // and its upload button) needs to point at the new id too, or
+        // actions on the clone would target the template's preview instead.
+        if (oldId) {
+          clone.querySelectorAll<HTMLElement>(`[data-model-upload-item="${escapeAttr(oldId)}"]`).forEach((el) => {
+            el.setAttribute("data-model-upload-item", newId);
+          });
+          clone.querySelectorAll<HTMLElement>(`[data-model-item="${escapeAttr(oldId)}"]`).forEach((el) => {
+            el.setAttribute("data-model-item", newId);
+          });
+        }
       }
 
       clone.querySelectorAll<HTMLElement>("[data-editable]").forEach((n) => {
