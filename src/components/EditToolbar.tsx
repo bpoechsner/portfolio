@@ -306,6 +306,9 @@ function injectObjectArrayControls() {
       clone.querySelectorAll<HTMLElement>("[data-folder-move-bound]").forEach((n) => {
         delete n.dataset.folderMoveBound;
       });
+      clone.querySelectorAll<HTMLElement>("[data-upload-bound]").forEach((n) => {
+        delete n.dataset.uploadBound;
+      });
 
       const oldIdx = Number(template.dataset.arrayIndex);
       reindexItem(clone, arrayPath, oldIdx, newIndex);
@@ -343,6 +346,9 @@ function injectObjectArrayControls() {
       injectArrayControls();
       injectPlaceholderTracking();
       injectFolderMoveControls();
+      injectUploadControls();
+      injectModelUploadControls();
+      injectResumeUploadControls();
     };
 
     container.appendChild(add);
