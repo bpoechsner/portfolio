@@ -150,7 +150,9 @@ function attachRemoveButton(item: HTMLElement, arrayPath: string) {
     e.preventDefault();
     e.stopPropagation();
     const removedIndex = Number(item.getAttribute("data-array-index"));
+    const folderGrid = item.closest<HTMLElement>("[data-folder-grid]");
     item.remove();
+    if (folderGrid) updateFolderCount(folderGrid);
     const remaining = Array.from(
       document.querySelectorAll<HTMLElement>(`[data-array-item][data-array-path="${escapeAttr(arrayPath)}"]`)
     ).sort((a, b) => Number(a.dataset.arrayIndex) - Number(b.dataset.arrayIndex));
@@ -296,10 +298,13 @@ function injectObjectArrayControls() {
 
       const clone = template.cloneNode(true) as HTMLElement;
       clone.querySelectorAll("[data-edit-injected]").forEach((n) => n.remove());
-      // cloneNode copies the "already bound" marker but not the actual
-      // listener, so placeholder tracking must be re-attached fresh below.
+      // cloneNode copies "already bound" markers but not the actual
+      // listeners, so these need to be re-attached fresh below.
       clone.querySelectorAll<HTMLElement>("[data-placeholder-bound]").forEach((n) => {
         delete n.dataset.placeholderBound;
+      });
+      clone.querySelectorAll<HTMLElement>("[data-folder-move-bound]").forEach((n) => {
+        delete n.dataset.folderMoveBound;
       });
 
       const oldIdx = Number(template.dataset.arrayIndex);
@@ -323,11 +328,21 @@ function injectObjectArrayControls() {
         n.contentEditable = "true";
       });
 
-      add.insertAdjacentElement("beforebegin", clone);
+      // If the duplicated entry belongs to a folder (3D files), keep the
+      // copy in that same folder's grid instead of dropping it outside
+      // every folder.
+      const templateFolderGrid = template.closest<HTMLElement>("[data-folder-grid]");
+      if (templateFolderGrid) {
+        templateFolderGrid.appendChild(clone);
+        updateFolderCount(templateFolderGrid);
+      } else {
+        add.insertAdjacentElement("beforebegin", clone);
+      }
       attachRemoveButton(clone, arrayPath);
       attachMoveButtons(clone, arrayPath, container);
       injectArrayControls();
       injectPlaceholderTracking();
+      injectFolderMoveControls();
     };
 
     container.appendChild(add);
@@ -432,6 +447,126 @@ function injectUploadControls() {
   });
 }
 
+// ── Folders (3D files) ───────────────────────────────────────────────────
+
+function updateFolderCount(grid: HTMLElement) {
+  const details = grid.closest("details");
+  const countEl = details?.querySelector("summary span:last-child");
+  if (countEl) countEl.textContent = `(${grid.querySelectorAll("[data-array-item]").length})`;
+}
+
+function buildFolderSection(name: string): HTMLElement {
+  const details = document.createElement("details");
+  details.open = true;
+  details.className = "mb-8 group/folder";
+
+  const summary = document.createElement("summary");
+  summary.className =
+    "flex items-center gap-2 mb-4 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden";
+
+  const chevron = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  chevron.setAttribute("class", "w-4 h-4 text-amber-500/70 shrink-0 transition-transform group-open/folder:rotate-90");
+  chevron.setAttribute("fill", "none");
+  chevron.setAttribute("stroke", "currentColor");
+  chevron.setAttribute("viewBox", "0 0 24 24");
+  chevron.setAttribute("stroke-width", "1.5");
+  chevron.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />';
+
+  const folderIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  folderIcon.setAttribute("class", "w-4 h-4 text-amber-500/70 shrink-0");
+  folderIcon.setAttribute("fill", "currentColor");
+  folderIcon.setAttribute("viewBox", "0 0 24 24");
+  folderIcon.innerHTML = '<path d="M10 4H4c-1.11 0-2 .89-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" />';
+
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "font-mono text-sm font-bold text-neutral-300 tracking-wide";
+  nameSpan.textContent = name;
+
+  const countSpan = document.createElement("span");
+  countSpan.className = "font-mono text-[11px] text-neutral-700";
+  countSpan.textContent = "(0)";
+
+  summary.append(chevron, folderIcon, nameSpan, countSpan);
+
+  const grid = document.createElement("div");
+  grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4";
+  grid.setAttribute("data-folder-grid", name);
+
+  details.append(summary, grid);
+  return details;
+}
+
+function injectFolderMoveControls() {
+  document.querySelectorAll<HTMLSelectElement>("[data-folder-move-target]").forEach((sel) => {
+    if (sel.dataset.folderMoveBound) return;
+    sel.dataset.folderMoveBound = "true";
+    sel.addEventListener("change", () => {
+      const target = sel.getAttribute("data-folder-move-target")!;
+      const span = document.querySelector<HTMLElement>(`[data-editable][data-path="${escapeAttr(target)}"]`);
+      if (span) span.textContent = sel.value;
+
+      const card = sel.closest<HTMLElement>("[data-array-item]");
+      if (!card) return;
+      const display = card.querySelector<HTMLElement>("[data-project-display]");
+      if (display) display.textContent = sel.value || "Ungrouped";
+
+      const oldGrid = card.closest<HTMLElement>("[data-folder-grid]");
+      let targetGrid = document.querySelector<HTMLElement>(
+        `[data-folder-grid="${escapeAttr(sel.value)}"]`
+      );
+      if (!targetGrid) {
+        const section = buildFolderSection(sel.value);
+        document.querySelector('[data-folders-container]')?.appendChild(section);
+        targetGrid = section.querySelector<HTMLElement>("[data-folder-grid]");
+      }
+      if (targetGrid && targetGrid !== oldGrid) {
+        targetGrid.appendChild(card);
+        updateFolderCount(targetGrid);
+        if (oldGrid) updateFolderCount(oldGrid);
+      }
+    });
+  });
+}
+
+function injectCreateFolderControls() {
+  document.querySelectorAll<HTMLButtonElement>("[data-create-folder]").forEach((btn) => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "true";
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const name = window.prompt("New folder name:")?.trim();
+      if (!name) return;
+
+      const list = document.querySelector('[data-folders-list]');
+      if (!list) return;
+      const existingSpans = Array.from(list.querySelectorAll<HTMLElement>("[data-path]"));
+      if (existingSpans.some((el) => el.textContent?.trim() === name)) {
+        window.alert("A folder with that name already exists.");
+        return;
+      }
+
+      const idx = existingSpans.length;
+      const span = document.createElement("span");
+      span.setAttribute("data-editable", "true");
+      span.setAttribute("data-path", `models.folders.${idx}`);
+      span.textContent = name;
+      list.appendChild(span);
+
+      document.querySelectorAll<HTMLSelectElement>("[data-folder-move-target]").forEach((sel) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+
+      if (!document.querySelector(`[data-folder-grid="${escapeAttr(name)}"]`)) {
+        const section = buildFolderSection(name);
+        document.querySelector('[data-folders-container]')?.appendChild(section);
+      }
+    });
+  });
+}
+
 // ── Resume PDF upload ────────────────────────────────────────────────────
 
 function injectResumeUploadControls() {
@@ -532,12 +667,35 @@ function collectEdits(): { scalars: Record<string, string>; arrays: Record<strin
 }
 
 function collectArrayLengths(): Record<string, number> {
-  const counts: Record<string, number> = {};
+  const maxIndex: Record<string, number> = {};
+
   document.querySelectorAll<HTMLElement>("[data-array-item][data-array-path]").forEach((el) => {
     const p = el.getAttribute("data-array-path")!;
-    counts[p] = (counts[p] ?? 0) + 1;
+    const idx = Number(el.getAttribute("data-array-index"));
+    if (!(p in maxIndex) || idx > maxIndex[p]) maxIndex[p] = idx;
   });
-  return counts;
+
+  // Some entries (e.g. the single academic/education card) intentionally
+  // sit outside the add/remove/reorder controls but still have their own
+  // indexed fields — account for those too so Save doesn't truncate the
+  // array down to just the wrapped items and delete them.
+  const arrayPaths = Object.keys(maxIndex);
+  if (arrayPaths.length) {
+    document.querySelectorAll<HTMLElement>("[data-editable][data-path]").forEach((el) => {
+      const path = el.getAttribute("data-path")!;
+      for (const p of arrayPaths) {
+        const prefix = `${p}.`;
+        if (path.startsWith(prefix)) {
+          const idx = Number(path.slice(prefix.length).split(".")[0]);
+          if (!isNaN(idx) && idx > maxIndex[p]) maxIndex[p] = idx;
+        }
+      }
+    });
+  }
+
+  const lengths: Record<string, number> = {};
+  for (const p of arrayPaths) lengths[p] = maxIndex[p] + 1;
+  return lengths;
 }
 
 // ── 3D model upload (replaces pasting a download URL) ───────────────────────
@@ -636,6 +794,8 @@ export default function EditToolbar() {
       injectUploadControls();
       injectModelUploadControls();
       injectResumeUploadControls();
+      injectFolderMoveControls();
+      injectCreateFolderControls();
       injectPlaceholderTracking();
     }
     if (mode === "idle") {

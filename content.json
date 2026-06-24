@@ -218,8 +218,7 @@
   ],
   "models": {
     "description": "CAD models and printable STL files from my projects. Designed in Onshape, sliced for the Bambu Lab P1S. Free to use for personal builds.",
-    "printables_url": "",
-    "thangs_url": "",
+    "folders": ["Robotic Arm"],
     "files": [
       {
         "id": "arm-base",

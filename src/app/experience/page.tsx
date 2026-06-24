@@ -98,13 +98,7 @@ export default async function ExperiencePage() {
           <SectionHeader label="Academic" title="Education" />
 
           <FadeIn>
-            <div
-              className="border border-neutral-800 bg-neutral-900/30 p-6 card-glow transition-all"
-              data-array-item="true"
-              data-array-path="experience"
-              data-array-index={academicIdx}
-              data-id-field="id"
-            >
+            <div className="border border-neutral-800 bg-neutral-900/30 p-6 card-glow transition-all">
               <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                 <div>
                   <h2

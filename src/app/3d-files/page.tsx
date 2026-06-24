@@ -9,27 +9,34 @@ export const metadata: Metadata = {
   title: "3D Files",
 };
 
-// Files are grouped into folders by their "project" field — there's no
-// separate "folder" concept, renaming a part's project text moves it
-// between folders. Order of folders follows first appearance in the array.
-function groupByProject(files: ModelFile[]) {
-  const groups: { name: string; items: { file: ModelFile; i: number }[] }[] = [];
-  files.forEach((file, i) => {
-    let group = groups.find((g) => g.name === file.project);
-    if (!group) {
-      group = { name: file.project, items: [] };
-      groups.push(group);
-    }
-    group.items.push({ file, i });
+// Folders are an explicit list (models.folders) so an empty folder can
+// exist before anything's filed into it. Files are grouped by their
+// "project" field matching a folder name; anything with no match (or no
+// project set) falls into a synthetic "Ungrouped" bucket.
+function groupFiles(folders: string[], files: ModelFile[]) {
+  const names = [...folders];
+  files.forEach((f) => {
+    if (f.project && !names.includes(f.project)) names.push(f.project);
   });
-  return groups;
+
+  const groups = names.map((name) => ({ name, items: [] as { file: ModelFile; i: number }[] }));
+  const ungrouped: { name: string; items: { file: ModelFile; i: number }[] } = { name: "", items: [] };
+
+  files.forEach((file, i) => {
+    const group = groups.find((g) => g.name === file.project);
+    if (group) group.items.push({ file, i });
+    else ungrouped.items.push({ file, i });
+  });
+
+  if (ungrouped.items.length) groups.push(ungrouped);
+  return { groups, allFolderNames: names };
 }
 
 export default async function ThreeDFilesPage() {
   const content = await getContent();
   const { models, pages } = content;
   const pg = pages.files;
-  const groups = groupByProject(models.files);
+  const { groups, allFolderNames } = groupFiles(models.folders, models.files);
 
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-24">
@@ -42,66 +49,26 @@ export default async function ThreeDFilesPage() {
         subtitlePath="models.description"
       />
 
-      {/* Gallery URLs — only visible in edit mode */}
-      <div className="edit-only flex flex-wrap gap-x-6 gap-y-1 mb-6">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[9px] text-neutral-700 tracking-widest">PRINTABLES</span>
-          <span
-            className="font-mono text-[10px] text-neutral-600"
-            data-editable="true"
-            data-path="models.printables_url"
-            {...(!models.printables_url ? { "data-placeholder": "true" } : {})}
-          >
-            {models.printables_url || "paste URL here"}
+      {/* Canonical folder name list — hidden, just here for Save to pick up */}
+      <div className="hidden" data-folders-list="true">
+        {models.folders.map((name, fi) => (
+          <span key={fi} data-editable="true" data-path={`models.folders.${fi}`}>
+            {name}
           </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[9px] text-neutral-700 tracking-widest">THANGS</span>
-          <span
-            className="font-mono text-[10px] text-neutral-600"
-            data-editable="true"
-            data-path="models.thangs_url"
-            {...(!models.thangs_url ? { "data-placeholder": "true" } : {})}
-          >
-            {models.thangs_url || "paste URL here"}
-          </span>
-        </div>
+        ))}
       </div>
 
-      {/* External gallery links */}
-      {(models.printables_url || models.thangs_url) && (
-        <div className="flex flex-wrap gap-3 mb-10">
-          {models.printables_url && (
-            <a
-              href={models.printables_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 border border-neutral-800 hover:border-amber-500/50 text-neutral-500 hover:text-amber-400 font-mono text-xs tracking-widest px-4 py-2 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              PRINTABLES
-            </a>
-          )}
-          {models.thangs_url && (
-            <a
-              href={models.thangs_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 border border-neutral-800 hover:border-amber-500/50 text-neutral-500 hover:text-amber-400 font-mono text-xs tracking-widest px-4 py-2 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              THANGS
-            </a>
-          )}
-        </div>
-      )}
+      <div className="edit-only mb-6">
+        <button
+          data-create-folder="true"
+          className="font-mono text-[11px] text-amber-400 border border-amber-500/30 px-3 py-1.5 hover:border-amber-500/60"
+        >
+          + Create folder
+        </button>
+      </div>
 
       {/* Files grouped into folders by their "project" field */}
-      <div>
+      <div data-folders-container="true">
       {groups.map((group) => (
         <details key={group.name || "ungrouped"} open className="mb-8 group/folder">
           <summary className="flex items-center gap-2 mb-4 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
@@ -123,7 +90,10 @@ export default async function ThreeDFilesPage() {
             <span className="font-mono text-[11px] text-neutral-700">({group.items.length})</span>
           </summary>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+            data-folder-grid={group.name}
+          >
             {group.items.map(({ file, i }) => (
               <div
                 key={file.id}
@@ -172,15 +142,33 @@ export default async function ThreeDFilesPage() {
                 {file.name}
               </h3>
 
-              <p
-                className="font-mono text-[11px] text-neutral-700 mb-3"
-                data-editable="true"
-                data-path={`models.files.${i}.project`}
-              >
-                {file.project}
+              <p className="font-mono text-[11px] text-neutral-700 mb-3" data-project-display="true">
+                {file.project || "Ungrouped"}
               </p>
+              <span className="hidden" data-editable="true" data-path={`models.files.${i}.project`}>
+                {file.project}
+              </span>
 
               <div className="edit-only flex flex-col gap-1.5 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-12 shrink-0">
+                    FOLDER
+                  </span>
+                  <select
+                    className="font-mono text-[10px] text-neutral-300 bg-neutral-900 border border-neutral-800 px-1.5 py-0.5"
+                    data-folder-move-target={`models.files.${i}.project`}
+                    defaultValue={file.project}
+                  >
+                    {allFolderNames.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                    {!allFolderNames.includes(file.project) && (
+                      <option value={file.project}>{file.project || "(no folder)"}</option>
+                    )}
+                  </select>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-[9px] text-neutral-700 tracking-widest w-12 shrink-0">
                     VERSION
